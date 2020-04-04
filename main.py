@@ -7,7 +7,8 @@ import annoy
 import numpy as np
 import math
 from tqdm import tqdm
-
+import pickle
+import time
 
 # Load Vectors in Python (source: https://fasttext.cc/docs/en/english-vectors.html)
 # import io
@@ -47,13 +48,28 @@ def fasterclosest(input_vectors, query):
 
 
 def get_bias_score(word, male_words, female_words, word_embedding):
-    male_sum = 0
-    for elem in male_words:
-        male_sum += distance(word_embedding.get(word), word_embedding.get(elem))
-    female_sum = 0
-    for elem in female_words:
-        female_sum += distance(word_embedding.get(word), word_embedding.get(elem))
-    return male_sum - female_sum
+    if word in word_embedding:
+        male_sum = 0
+        for elem in male_words:
+            male_sum += distance(word_embedding.get(word), word_embedding.get(elem))
+        female_sum = 0
+        for elem in female_words:
+            female_sum += distance(word_embedding.get(word), word_embedding.get(elem))
+        return male_sum - female_sum
+    else:
+        print(word, " is not in the dictionary.")
+        return None
+
+def save_dict_to_pkl(dict, path):
+    # Store data (serialize)
+    with open(path, 'wb') as handle:
+        pickle.dump(dict, handle, protocol=pickle.HIGHEST_PROTOCOL)
+
+def load_pkl_to_dict(path):
+    # Load data (deserialize)
+    with open(path, 'rb') as handle:
+        unserialized_data = pickle.load(handle)
+    return unserialized_data
 
 
 if __name__ == "__main__":
@@ -75,9 +91,17 @@ if __name__ == "__main__":
             vector = np.asarray(values[1:], "float32")
             embeddings_dict[word] = vector
 
-    if "penis" in embeddings_dict:
-        print("Yes, 'penis' is one of the keys in the embeddings_dict dictionary")
-        print(embeddings_dict.get("penis"))
+    pkl_path = "/home/jonas/Documents/GitRepos/PretrainedWordVectors/pkl_Test_small.pickle"
+
+    start_time = time.time()
+    save_dict_to_pkl(embeddings_dict, pkl_path)
+    duration = time.time() - start_time
+    print("You dumped the pickle in ", duration, " seconds!")
+
+    start_time = time.time()
+    pkl_dict = load_pkl_to_dict(pkl_path)
+    duration = time.time() - start_time
+    print("You loaded the pickle in ", duration, " seconds!")
 
     female_list = ["she", "hers", "her", "woman", "women", "mother", "female", "vulva"]
     male_list = ["he", "his", "him", "man", "men", "father", "male", "penis"]
@@ -90,8 +114,21 @@ if __name__ == "__main__":
                    "administrate", "admire", "admit", "admonish", "adopt", "adore", "adorn", "adsorb", "adulate",
                    "advance", "advertise"]
 
+    if "penis" in embeddings_dict:
+        print("Yes, 'penis' is one of the keys in the embeddings_dict dictionary")
+        print(embeddings_dict.get("penis"))
+
     for elem in gender_list:
         print(elem)
         print(get_bias_score(elem, male_list, female_list, embeddings_dict))
 
-    print(closest(embeddings_dict, embeddings_dict.get("penis")))
+    if "penis" in pkl_dict:
+        print("Yes, 'penis' is one of the keys in the pkl_dict dictionary")
+        print(pkl_dict.get("penis"))
+
+    for elem in gender_list:
+        print(elem)
+        print(get_bias_score(elem, male_list, female_list, pkl_dict))
+
+    print("Penis neighbours in embeddings_dict", closest(embeddings_dict, embeddings_dict.get("penis")))
+    print("Penis neighbours in pkl_dict", closest(pkl_dict, pkl_dict.get("penis")))
