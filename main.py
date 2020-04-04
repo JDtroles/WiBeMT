@@ -71,35 +71,57 @@ def load_pkl_to_dict(path):
         unserialized_data = pickle.load(handle)
     return unserialized_data
 
-
-if __name__ == "__main__":
-    # CODE: get number of lines of text file
-    count = 0
-    for line in open("/home/jonas/Documents/GitRepos/PretrainedWordVectors/glove.6B.300d.txt").readlines():
-        count += 1
-
-    # TODO: tutorial -> https://towardsdatascience.com/word-embeddings-with-code2vec-glove-and-spacy-5b26420bf632
-
-    # glove.840B = 2196017
-    # glove.6B = 400000
+def load_txt_to_dict(path):
     embeddings_dict = {}
-    with open("/home/jonas/Documents/GitRepos/PretrainedWordVectors/glove.840B.300d.txt", 'r', encoding="utf-8") as f:
+    with open(path, 'r', encoding="utf-8") as f:
 
         for line in tqdm(f.readlines(), desc="Creating dictionary: "):
             values = line.split(" ")
             word = values[0]
             vector = np.asarray(values[1:], "float32")
             embeddings_dict[word] = vector
+    return embeddings_dict
 
-    pkl_path = "/home/jonas/Documents/GitRepos/PretrainedWordVectors/pkl_Test_small.pickle"
+def load_vocab_to_list(path):
+    vocab_list = []
+    with open(path, 'r', encoding="utf-8") as f:
+
+        for line in tqdm(f.readlines(), desc="Creating vocab list: "):
+            values = line.split(" ")
+            word = values[1]
+            vocab_list.append(word.rstrip())
+    return vocab_list
+
+if __name__ == "__main__":
+    adjectives_list = load_vocab_to_list("/home/jonas/Documents/GitRepos/Words/Adjectives.txt")
+    verb_list = load_vocab_to_list("/home/jonas/Documents/GitRepos/Words/Verbs.txt")
+
+    print(len(adjectives_list))
+    print(adjectives_list[0:10])
+    print(len(verb_list))
+    print(verb_list[0:10])
+
+    # TODO: tutorial -> https://towardsdatascience.com/word-embeddings-with-code2vec-glove-and-spacy-5b26420bf632
+
+    # glove.840B = 2196017
+    # glove.6B = 400000
+
+
+    embeddings_dict = load_txt_to_dict("/home/jonas/Documents/GitRepos/PretrainedWordVectors/crawl-300d-2M.vec")
+
+
+
+    pkl_path_6B = "/home/jonas/Documents/GitRepos/PretrainedWordVectors/glove.6B.300d.pickle"
+    pkl_path_840B = "/home/jonas/Documents/GitRepos/PretrainedWordVectors/glove.840B.300d.pickle"
+    pkl_path_crawl = "/home/jonas/Documents/GitRepos/PretrainedWordVectors/crawl.?.300d.pickle"
 
     start_time = time.time()
-    save_dict_to_pkl(embeddings_dict, pkl_path)
+    #save_dict_to_pkl(embeddings_dict, pkl_path_crawl)
     duration = time.time() - start_time
     print("You dumped the pickle in ", duration, " seconds!")
 
     start_time = time.time()
-    pkl_dict = load_pkl_to_dict(pkl_path)
+    pkl_dict = load_pkl_to_dict(pkl_path_840B)
     duration = time.time() - start_time
     print("You loaded the pickle in ", duration, " seconds!")
 
