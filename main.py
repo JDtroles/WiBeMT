@@ -9,6 +9,8 @@ import math
 from tqdm import tqdm
 import pickle
 import time
+from statistics import mean
+# from sklearn.metrics.pairwise import cosine_similarity
 
 # Load Vectors in Python (source: https://fasttext.cc/docs/en/english-vectors.html)
 # import io
@@ -27,9 +29,17 @@ import time
 # vectors = spacy.vectors.Vectors()
 # vectors.from_glove("/home/jonas/Documents/GitRepos/PretrainedWordVectors/GloVe840B/")
 
-def distance(coord1, coord2):
+
+def distance(coord1, coord2, cosine):
     # note, this is VERY SLOW, don't use for actual code
-    return math.sqrt(sum([(i - j) ** 2 for i, j in zip(coord1, coord2)]))
+    if cosine:
+        dot = np.dot(coord1, coord2)
+        norma = np.linalg.norm(coord1)
+        normb = np.linalg.norm(coord2)
+        cos = dot / (norma * normb)
+        return cos
+    else:
+        return math.sqrt(sum([(i - j) ** 2 for i, j in zip(coord1, coord2)]))
 
 
 def closest(space, coord, n=10):
@@ -47,29 +57,48 @@ def fasterclosest(input_vectors, query):
     return most_similar
 
 
-def get_bias_score(word, male_words, female_words, word_embedding):
-    if word in word_embedding:
-        male_sum = 0
-        for elem in male_words:
-            male_sum += distance(word_embedding.get(word), word_embedding.get(elem))
-        female_sum = 0
-        for elem in female_words:
-            female_sum += distance(word_embedding.get(word), word_embedding.get(elem))
-        return male_sum - female_sum
+def get_bias_score(comp_word, male_words, female_words, word_embedding, cosine):
+    if comp_word in word_embedding:
+        male_values = []
+        for male_word in male_words:
+            male_values.append(distance(word_embedding.get(comp_word), word_embedding.get(male_word), cosine))
+        female_values = []
+        for female_word in female_words:
+            female_values.append(distance(word_embedding.get(comp_word), word_embedding.get(female_word), cosine))
+        return mean(male_values) - mean(female_values)
     else:
-        print(word, " is not in the dictionary.")
+        print(comp_word, " is not in the dictionary.")
         return None
+
+
+def evaluate_words_for_gender(word_list, male_words, female_words, word_embedding, cosine):
+    tuples_word_rank = []
+    for word in tqdm(word_list, desc="Evaluating words in list: "):
+        if word in word_embedding:
+            tuples_word_rank.append([word, get_bias_score(word, male_words, female_words, word_embedding, cosine)])
+    return tuples_word_rank
+
+
+def get_min_or_max_values(tuples, n, min):
+    tuples.sort(key=lambda tup: tup[1])
+    if min:
+        return tuples[:n]
+    else:
+        return tuples[(len(tuples)-n):]
+
 
 def save_dict_to_pkl(dict, path):
     # Store data (serialize)
     with open(path, 'wb') as handle:
         pickle.dump(dict, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
+
 def load_pkl_to_dict(path):
     # Load data (deserialize)
     with open(path, 'rb') as handle:
         unserialized_data = pickle.load(handle)
     return unserialized_data
+
 
 def load_txt_to_dict(path):
     embeddings_dict = {}
@@ -82,6 +111,7 @@ def load_txt_to_dict(path):
             embeddings_dict[word] = vector
     return embeddings_dict
 
+
 def load_vocab_to_list(path):
     vocab_list = []
     with open(path, 'r', encoding="utf-8") as f:
@@ -92,14 +122,15 @@ def load_vocab_to_list(path):
             vocab_list.append(word.rstrip())
     return vocab_list
 
+
 if __name__ == "__main__":
     adjectives_list = load_vocab_to_list("/home/jonas/Documents/GitRepos/Words/Adjectives.txt")
-    verb_list = load_vocab_to_list("/home/jonas/Documents/GitRepos/Words/Verbs.txt")
+    verbs_list = load_vocab_to_list("/home/jonas/Documents/GitRepos/Words/Verbs.txt")
 
     print(len(adjectives_list))
     print(adjectives_list[0:10])
-    print(len(verb_list))
-    print(verb_list[0:10])
+    print(len(verbs_list))
+    print(verbs_list[0:10])
 
     # TODO: tutorial -> https://towardsdatascience.com/word-embeddings-with-code2vec-glove-and-spacy-5b26420bf632
 
@@ -107,7 +138,7 @@ if __name__ == "__main__":
     # glove.6B = 400000
 
 
-    embeddings_dict = load_txt_to_dict("/home/jonas/Documents/GitRepos/PretrainedWordVectors/crawl-300d-2M.vec")
+    #embeddings_dict = load_txt_to_dict("/home/jonas/Documents/GitRepos/PretrainedWordVectors/crawl-300d-2M.vec")
 
 
 
@@ -136,13 +167,35 @@ if __name__ == "__main__":
                    "administrate", "admire", "admit", "admonish", "adopt", "adore", "adorn", "adsorb", "adulate",
                    "advance", "advertise"]
 
-    if "penis" in embeddings_dict:
-        print("Yes, 'penis' is one of the keys in the embeddings_dict dictionary")
-        print(embeddings_dict.get("penis"))
+    evaluated_adjectives = evaluate_words_for_gender(adjectives_list, male_list, female_list, pkl_dict, True)
+    evaluated_verbs = evaluate_words_for_gender(verbs_list, male_list, female_list, pkl_dict, True)
+    evaluated_words = evaluate_words_for_gender(list(pkl_dict.keys()), male_list, female_list, pkl_dict, True)
+    print("Female verbs: ")
+    for word in get_min_or_max_values(evaluated_verbs, 20, True):
+        print(word)
+    print("Male verbs: ")
+    for word in get_min_or_max_values(evaluated_verbs, 20, False):
+        print(word)
+    print("Female adjectives: ")
+    for word in get_min_or_max_values(evaluated_adjectives, 20, True):
+        print(word)
+    print("Male adjectives: ")
+    for word in get_min_or_max_values(evaluated_adjectives, 20, False):
+        print(word)
+    print("Get all gender Female words: ")
+    for word in get_min_or_max_values(evaluated_words, 20, True):
+        print(word)
+    print("Get all gender Male words: ")
+    for word in get_min_or_max_values(evaluated_words, 20, False):
+        print(word)
 
-    for elem in gender_list:
-        print(elem)
-        print(get_bias_score(elem, male_list, female_list, embeddings_dict))
+    # if "penis" in embeddings_dict:
+    #     print("Yes, 'penis' is one of the keys in the embeddings_dict dictionary")
+    #     print(embeddings_dict.get("penis"))
+    #
+    # for elem in gender_list:
+    #     print(elem)
+    #     print(get_bias_score(elem, male_list, female_list, embeddings_dict))
 
     if "penis" in pkl_dict:
         print("Yes, 'penis' is one of the keys in the pkl_dict dictionary")
@@ -150,7 +203,7 @@ if __name__ == "__main__":
 
     for elem in gender_list:
         print(elem)
-        print(get_bias_score(elem, male_list, female_list, pkl_dict))
+        print(get_bias_score(elem, male_list, female_list, pkl_dict, True))
 
-    print("Penis neighbours in embeddings_dict", closest(embeddings_dict, embeddings_dict.get("penis")))
-    print("Penis neighbours in pkl_dict", closest(pkl_dict, pkl_dict.get("penis")))
+    # print("Penis neighbours in embeddings_dict", closest(embeddings_dict, embeddings_dict.get("penis")))
+    # print("Penis neighbours in pkl_dict", closest(pkl_dict, pkl_dict.get("penis")))
