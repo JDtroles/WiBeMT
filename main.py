@@ -10,6 +10,8 @@ from tqdm import tqdm
 import pickle
 import time
 from statistics import mean
+
+
 # from sklearn.metrics.pairwise import cosine_similarity
 
 # Load Vectors in Python (source: https://fasttext.cc/docs/en/english-vectors.html)
@@ -84,7 +86,7 @@ def get_min_or_max_values(tuples, n, min):
     if min:
         return tuples[:n]
     else:
-        return tuples[(len(tuples)-n):]
+        return tuples[(len(tuples) - n):]
 
 
 def save_dict_to_pkl(dict, path):
@@ -103,7 +105,6 @@ def load_pkl_to_dict(path):
 def load_txt_to_dict(path):
     embeddings_dict = {}
     with open(path, 'r', encoding="utf-8") as f:
-
         for line in tqdm(f.readlines(), desc="Creating dictionary: "):
             values = line.split(" ")
             word = values[0]
@@ -115,12 +116,27 @@ def load_txt_to_dict(path):
 def load_vocab_to_list(path):
     vocab_list = []
     with open(path, 'r', encoding="utf-8") as f:
-
         for line in tqdm(f.readlines(), desc="Creating vocab list: "):
             values = line.split(" ")
             word = values[1]
             vocab_list.append(word.rstrip())
     return vocab_list
+
+# TODO: fix bolukbasi sorting function
+
+def sort_bolukbasi_gender_list(gender_list_path, fem_list, ma_list, word_emb):
+    gender_list_female = []
+    gender_list_male = []
+    with open(gender_list_path, 'r', encoding="utf-8") as f:
+        for line in tqdm(f.readlines(), desc="Creating vocab list: "):
+            values = line.split(", ")
+            for word in values:
+                if word in word_emb:
+                    if get_bias_score(word, ma_list, fem_list, word_emb, True) < 0:
+                        gender_list_male.append(word)
+                    else:
+                        gender_list_female.append(word)
+    return gender_list_male, gender_list_female
 
 
 if __name__ == "__main__":
@@ -137,17 +153,14 @@ if __name__ == "__main__":
     # glove.840B = 2196017
     # glove.6B = 400000
 
-
-    #embeddings_dict = load_txt_to_dict("/home/jonas/Documents/GitRepos/PretrainedWordVectors/crawl-300d-2M.vec")
-
-
+    # embeddings_dict = load_txt_to_dict("/home/jonas/Documents/GitRepos/PretrainedWordVectors/crawl-300d-2M.vec")
 
     pkl_path_6B = "/home/jonas/Documents/GitRepos/PretrainedWordVectors/glove.6B.300d.pickle"
     pkl_path_840B = "/home/jonas/Documents/GitRepos/PretrainedWordVectors/glove.840B.300d.pickle"
     pkl_path_crawl = "/home/jonas/Documents/GitRepos/PretrainedWordVectors/crawl.?.300d.pickle"
 
     start_time = time.time()
-    #save_dict_to_pkl(embeddings_dict, pkl_path_crawl)
+    # save_dict_to_pkl(embeddings_dict, pkl_path_crawl)
     duration = time.time() - start_time
     print("You dumped the pickle in ", duration, " seconds!")
 
@@ -156,8 +169,10 @@ if __name__ == "__main__":
     duration = time.time() - start_time
     print("You loaded the pickle in ", duration, " seconds!")
 
-    female_list = ["she", "hers", "her", "woman", "women", "mother", "female", "vulva"]
-    male_list = ["he", "his", "him", "man", "men", "father", "male", "penis"]
+    female_list_long = ["she", "hers", "her", "woman", "women", "mother", "female", "vulva"]
+    male_list_long = ["he", "his", "him", "man", "men", "father", "male", "penis"]
+    female_list = ["she"]
+    male_list = ["he"]
 
     gender_list = ["lads", "lion", "gentleman", "fraternity", "bachelor", "niece", "bulls", "husbands", "prince",
                    "colt", "salesman", "hers", "dude", "beard", "filly", "princess", "lesbians", "councilman",
@@ -166,6 +181,32 @@ if __name__ == "__main__":
                    "add", "address", "adhere", "adjoin", "adjourn", "adjudicate", "adjust", "administer",
                    "administrate", "admire", "admit", "admonish", "adopt", "adore", "adorn", "adsorb", "adulate",
                    "advance", "advertise"]
+
+    # bolukbasi_male_list = ['he', 'his', 'him', 'man', 'men', 'spokesman', 'himself', 'son', 'father', 'guy', 'boy',
+    #                        'boys', 'brother', 'male', 'brothers', 'dad', 'sons', 'king', 'businessman', 'grandfather',
+    #                        'deer', 'uncle', 'congressman', 'grandson', 'bull', 'businessmen', 'nephew', 'fathers',
+    #                        'lads', 'lion', 'gentleman', 'fraternity', 'bachelor', 'bulls', 'prince', 'colt', 'salesman',
+    #                        'dude', 'beard', 'councilman', 'gentlemen', 'stepfather', 'monks', 'lad', 'testosterone',
+    #                        'nephews', 'daddy', 'kings', 'sir', 'stud', 'lions', 'gelding', 'czar', 'countrymen',
+    #                        'penis', 'bloke', 'spokesmen', 'monastery', 'brethren', 'schoolboy', 'brotherhood',
+    #                        'stepson', 'uncles', 'monk', 'viagra', 'macho', 'statesman', 'fathered', 'blokes', 'dudes',
+    #                        'strongman', 'grandsons', 'studs', 'godfather', 'boyhood', 'baritone', 'grandpa',
+    #                        'countryman', 'stallion', 'fella', 'chap', 'widower', 'salesmen', 'beau', 'beards',
+    #                        'handyman', 'horsemen', 'fatherhood', 'princes', 'colts', 'ma', 'fraternities', 'pa',
+    #                        'fellas', 'councilmen', 'barbershop', 'fraternal']
+    # bolukbasi_female_list = []
+
+    bolukbasi_female_list, bolukbasi_male_list = sort_bolukbasi_gender_list("/home/jonas/Documents/GitRepos/Words/GenderWordsBolukbasi.txt", female_list_long, male_list_long, pkl_dict)
+
+    print("Female list:")
+    for elem in bolukbasi_female_list:
+        string = "'" + elem + "'"
+        print(string.strip(), end=", ")
+
+    print("Male list: ")
+    for elem in bolukbasi_male_list:
+        string = "'" + elem + "'"
+        print(string.strip(), end=", ")
 
     evaluated_adjectives = evaluate_words_for_gender(adjectives_list, male_list, female_list, pkl_dict, True)
     evaluated_verbs = evaluate_words_for_gender(verbs_list, male_list, female_list, pkl_dict, True)
@@ -196,14 +237,6 @@ if __name__ == "__main__":
     # for elem in gender_list:
     #     print(elem)
     #     print(get_bias_score(elem, male_list, female_list, embeddings_dict))
-
-    if "penis" in pkl_dict:
-        print("Yes, 'penis' is one of the keys in the pkl_dict dictionary")
-        print(pkl_dict.get("penis"))
-
-    for elem in gender_list:
-        print(elem)
-        print(get_bias_score(elem, male_list, female_list, pkl_dict, True))
 
     # print("Penis neighbours in embeddings_dict", closest(embeddings_dict, embeddings_dict.get("penis")))
     # print("Penis neighbours in pkl_dict", closest(pkl_dict, pkl_dict.get("penis")))
