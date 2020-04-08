@@ -122,8 +122,8 @@ def load_vocab_to_list(path):
             vocab_list.append(word.rstrip())
     return vocab_list
 
-# TODO: fix bolukbasi sorting function
 
+# TODO: fix bolukbasi sorting function
 def sort_bolukbasi_gender_list(gender_list_path, fem_list, ma_list, word_emb):
     gender_list_female = []
     gender_list_male = []
