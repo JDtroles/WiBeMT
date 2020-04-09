@@ -182,47 +182,76 @@ if __name__ == "__main__":
                    "administrate", "admire", "admit", "admonish", "adopt", "adore", "adorn", "adsorb", "adulate",
                    "advance", "advertise"]
 
-    # bolukbasi_male_list = ['he', 'his', 'him', 'man', 'men', 'spokesman', 'himself', 'son', 'father', 'guy', 'boy',
-    #                        'boys', 'brother', 'male', 'brothers', 'dad', 'sons', 'king', 'businessman', 'grandfather',
-    #                        'deer', 'uncle', 'congressman', 'grandson', 'bull', 'businessmen', 'nephew', 'fathers',
-    #                        'lads', 'lion', 'gentleman', 'fraternity', 'bachelor', 'bulls', 'prince', 'colt', 'salesman',
-    #                        'dude', 'beard', 'councilman', 'gentlemen', 'stepfather', 'monks', 'lad', 'testosterone',
-    #                        'nephews', 'daddy', 'kings', 'sir', 'stud', 'lions', 'gelding', 'czar', 'countrymen',
-    #                        'penis', 'bloke', 'spokesmen', 'monastery', 'brethren', 'schoolboy', 'brotherhood',
-    #                        'stepson', 'uncles', 'monk', 'viagra', 'macho', 'statesman', 'fathered', 'blokes', 'dudes',
-    #                        'strongman', 'grandsons', 'studs', 'godfather', 'boyhood', 'baritone', 'grandpa',
-    #                        'countryman', 'stallion', 'fella', 'chap', 'widower', 'salesmen', 'beau', 'beards',
-    #                        'handyman', 'horsemen', 'fatherhood', 'princes', 'colts', 'ma', 'fraternities', 'pa',
-    #                        'fellas', 'councilmen', 'barbershop', 'fraternal']
-    # bolukbasi_female_list = []
+    bolukbasi_male_list = ['he', 'his', 'him', 'man', 'men', 'spokesman', 'himself', 'son', 'father', 'guy', 'boy',
+                           'boys', 'brother', 'male', 'brothers', 'dad', 'sons', 'king', 'businessman', 'grandfather',
+                           'uncle', 'congressman', 'grandson', 'bull', 'businessmen', 'nephew', 'fathers',
+                           'lads', 'lion', 'gentleman', 'fraternity', 'bachelor', 'bulls', 'prince', 'colt', 'salesman',
+                           'dude', 'beard', 'councilman', 'gentlemen', 'stepfather', 'monks', 'lad', 'testosterone',
+                           'nephews', 'daddy', 'kings', 'sir', 'stud', 'lions', 'gelding', 'czar', 'countrymen',
+                           'penis', 'bloke', 'spokesmen', 'monastery', 'brethren', 'schoolboy', 'brotherhood',
+                           'stepson', 'uncles', 'monk', 'viagra', 'macho', 'statesman', 'fathered', 'blokes', 'dudes',
+                           'strongman', 'grandsons', 'studs', 'godfather', 'boyhood', 'baritone', 'grandpa',
+                           'countryman', 'stallion', 'fella', 'chap', 'widower', 'salesmen', 'beau', 'beards',
+                           'handyman', 'horsemen', 'fatherhood', 'princes', 'colts', 'fraternities', 'pa',
+                           'fellas', 'councilmen', 'barbershop', 'fraternal', 'husband', 'boyfriend', 'males',
+                           'husbands', 'sperm', 'fiance', 'suitors', 'prostate', 'paternity', 'suitor', 'hubby',
+                           'boyfriends', 'semen']
+    bolukbasi_female_list = ['her', 'she', 'women', 'woman', 'wife', 'mother', 'daughter', 'girls', 'girl',
+                             'spokeswoman', 'female', 'sister', 'herself', 'actress', 'mom', 'girlfriend', 'daughters',
+                             'lady', 'sisters', 'mothers', 'grandmother', 'ladies', 'queen', 'ma',
+                             'wives', 'widow', 'bride', 'females', 'aunt', 'lesbian', 'chairwoman', 'moms', 'maiden',
+                             'granddaughter', 'niece', 'hers', 'filly', 'princess', 'lesbians', 'actresses',
+                             'maid', 'mare', 'fiancee', 'dads', 'waitress', 'maternal', 'heroine',
+                             'nieces', 'girlfriends', 'mistress', 'womb', 'grandma', 'maternity', 'estrogen', 'widows',
+                             'diva', 'nuns', 'nun', 'brides', 'housewife', 'menopause', 'motherhood',
+                             'stepmother', 'hostess', 'fillies', 'congresswoman', 'witch',
+                             'sorority', 'businesswoman', 'gal', 'schoolgirl', 'goddess',
+                             'stepdaughter', 'uterus', 'mama', 'hens', 'hen', 'mommy', 'grandmothers',
+                             'feminism', 'heiress', 'queens', 'witches', 'aunts', 'granddaughters', 'convent',
+                             'vagina', 'maids', 'gals', 'housewives', 'obstetrics', 'councilwoman', 'matriarch',
+                             'dowry', 'deer']
 
-    bolukbasi_female_list, bolukbasi_male_list = sort_bolukbasi_gender_list("/home/jonas/Documents/GitRepos/Words/GenderWordsBolukbasi.txt", female_list_long, male_list_long, pkl_dict)
+    bolukbasi_amiguous = ['deer', 'ma', 'husband', 'boyfriend', 'males', 'husbands', 'sperm', 'fiance', 'suitors',
+                          'prostate', 'paternity', 'suitor', 'hubby', 'boyfriends', 'semen']
+
+    bolukbasi_female_list, bolukbasi_male_list = sort_bolukbasi_gender_list(
+        "/home/jonas/Documents/GitRepos/Words/GenderWordsBolukbasi.txt", female_list_long, male_list_long, pkl_dict)
 
     print("Female list:")
     for elem in bolukbasi_female_list:
         string = "'" + elem + "'"
         print(string.strip(), end=", ")
 
-    print("Male list: ")
+    print("\n", "Male list: ")
     for elem in bolukbasi_male_list:
         string = "'" + elem + "'"
         print(string.strip(), end=", ")
 
-    evaluated_adjectives = evaluate_words_for_gender(adjectives_list, male_list, female_list, pkl_dict, True)
-    evaluated_verbs = evaluate_words_for_gender(verbs_list, male_list, female_list, pkl_dict, True)
-    evaluated_words = evaluate_words_for_gender(list(pkl_dict.keys()), male_list, female_list, pkl_dict, True)
+    with open("/home/jonas/Documents/GitRepos/Words/GenderWordsBolukbasi.txt", 'r', encoding="utf-8") as f:
+        bolukbasi_base = []
+        for line in tqdm(f.readlines(), desc="Creating vocab list: "):
+            values = line.split(", ")
+            for word in values:
+                bolukbasi_base.append(word)
+
+    print("\n", "Bolukbasi list: \n", evaluate_words_for_gender(bolukbasi_base, male_list, female_list, pkl_dict, True))
+
+    evaluated_adjectives = evaluate_words_for_gender(adjectives_list, bolukbasi_male_list, bolukbasi_female_list, pkl_dict, True)
+    evaluated_verbs = evaluate_words_for_gender(verbs_list, bolukbasi_male_list, bolukbasi_female_list, pkl_dict, True)
     print("Female verbs: ")
-    for word in get_min_or_max_values(evaluated_verbs, 20, True):
+    for word in get_min_or_max_values(evaluated_verbs, 100, True):
         print(word)
     print("Male verbs: ")
-    for word in get_min_or_max_values(evaluated_verbs, 20, False):
+    for word in get_min_or_max_values(evaluated_verbs, 100, False):
         print(word)
     print("Female adjectives: ")
-    for word in get_min_or_max_values(evaluated_adjectives, 20, True):
+    for word in get_min_or_max_values(evaluated_adjectives, 100, True):
         print(word)
     print("Male adjectives: ")
-    for word in get_min_or_max_values(evaluated_adjectives, 20, False):
+    for word in get_min_or_max_values(evaluated_adjectives, 100, False):
         print(word)
+
+    evaluated_words = evaluate_words_for_gender(list(pkl_dict.keys()), bolukbasi_male_list, bolukbasi_female_list, pkl_dict, True)
     print("Get all gender Female words: ")
     for word in get_min_or_max_values(evaluated_words, 20, True):
         print(word)
