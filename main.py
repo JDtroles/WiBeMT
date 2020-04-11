@@ -139,7 +139,28 @@ def sort_bolukbasi_gender_list(gender_list_path, fem_list, ma_list, word_emb):
     return gender_list_male, gender_list_female
 
 
+def get_occupations(path):
+    occupations = set()
+    with open(path, 'r', encoding="utf-8") as f:
+        for line in f:
+            values = line.split("\t")
+            occu = values[3].replace("the ", "")
+            occu = occu.replace("The ", "")
+            occu = occu.replace("a ", "")
+            occu = occu.replace("an ", "")
+            occupations.add(occu.rstrip())
+    occupations_list = list(occupations)
+    occupations_list.sort()
+    with open("/home/jonas/Documents/GitRepos/Words/occupations_WinoMT.txt", "w") as f:
+        for elem in occupations_list:
+            f.write(elem)
+            f.write("\n")
+    print("Occupations:", len(occupations_list), "\n", occupations_list)
+
+
 if __name__ == "__main__":
+    get_occupations("/home/jonas/Documents/GitRepos/Words/Sentences_Occupations_Stanovsky.txt")
+
     adjectives_list = load_vocab_to_list("/home/jonas/Documents/GitRepos/Words/Adjectives.txt")
     verbs_list = load_vocab_to_list("/home/jonas/Documents/GitRepos/Words/Verbs.txt")
 
