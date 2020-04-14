@@ -10,6 +10,8 @@ from tqdm import tqdm
 import pickle
 import time
 from statistics import mean
+import re
+from string import digits
 
 
 # from sklearn.metrics.pairwise import cosine_similarity
@@ -76,8 +78,12 @@ def get_bias_score(comp_word, male_words, female_words, word_embedding, cosine):
 def evaluate_words_for_gender(word_list, male_words, female_words, word_embedding, cosine):
     tuples_word_rank = []
     for word in tqdm(word_list, desc="Evaluating words in list: "):
+        word = re.sub(r"\s+", "", word, flags=re.UNICODE)
+        word = word.translate(str.maketrans('', '', digits))
         if word in word_embedding:
             tuples_word_rank.append([word, get_bias_score(word, male_words, female_words, word_embedding, cosine)])
+        else:
+            print(word, "not in embedding")
     return tuples_word_rank
 
 
@@ -123,7 +129,6 @@ def load_vocab_to_list(path):
     return vocab_list
 
 
-# TODO: fix bolukbasi sorting function
 def sort_bolukbasi_gender_list(gender_list_path, fem_list, ma_list, word_emb):
     gender_list_female = []
     gender_list_male = []
@@ -148,7 +153,7 @@ def get_occupations(path):
             occu = occu.replace("The ", "")
             occu = occu.replace("a ", "")
             occu = occu.replace("an ", "")
-            occupations.add(occu.rstrip())
+            occupations.add(re.sub(r"\s+", "", occu, flags=re.UNICODE))
     occupations_list = list(occupations)
     occupations_list.sort()
     with open("/home/jonas/Documents/GitRepos/Words/occupations_WinoMT.txt", "w") as f:
@@ -156,10 +161,39 @@ def get_occupations(path):
             f.write(elem)
             f.write("\n")
     print("Occupations:", len(occupations_list), "\n", occupations_list)
+    return occupations_list
+
+
+def get_sentences(path_sentences, occu_list):
+    sentences_set = set()
+    with open(path_sentences, 'r', encoding="utf-8") as f:
+        for line in f:
+            values = line.split("\t")
+            occupation = values[3].replace("the ", "").replace("The ", "").replace("a ", "").replace("an ", "").rstrip()
+            sentence = values[2].replace(occupation, "X")
+            for elem in occu_list:
+                sentence = sentence.replace(elem, "Y")
+            # she, he = X1; her, his = X2; her, him = X3
+            gender_pronoun_space = [" she ", " he ", " her ", " him ", " his "]
+            for elem in gender_pronoun_space:
+                sentence = sentence.replace(elem, " X1 ")
+            gender_pronoun_dot = [" she.", " he.", " her.", " him.", " his."]
+            for elem in gender_pronoun_dot:
+                sentence = sentence.replace(elem, " X1.")
+            sentences_set.add(sentence)
+    sentences_list = list(sentences_set)
+    sentences_list.sort()
+    with open("/home/jonas/Documents/GitRepos/Words/sentences_WinoBias.txt", "w") as f:
+        for elem in sentences_list:
+            f.write(elem)
+            f.write("\n")
+    print("Unique sentences:", len(sentences_list), "\n", sentences_list)
 
 
 if __name__ == "__main__":
-    get_occupations("/home/jonas/Documents/GitRepos/Words/Sentences_Occupations_Stanovsky.txt")
+    occupations_list_WinoBias = get_occupations("/home/jonas/Documents/GitRepos/Words/WinoBias.txt")
+    get_sentences("/home/jonas/Documents/GitRepos/Words/WinoBias.txt", occupations_list_WinoBias)
+    # get_occupations("/home/jonas/Documents/GitRepos/Words/Sentences_Occupations_Stanovsky.txt")
 
     adjectives_list = load_vocab_to_list("/home/jonas/Documents/GitRepos/Words/Adjectives.txt")
     verbs_list = load_vocab_to_list("/home/jonas/Documents/GitRepos/Words/Verbs.txt")
@@ -259,20 +293,27 @@ if __name__ == "__main__":
 
     evaluated_adjectives = evaluate_words_for_gender(adjectives_list, bolukbasi_male_list, bolukbasi_female_list, pkl_dict, True)
     evaluated_verbs = evaluate_words_for_gender(verbs_list, bolukbasi_male_list, bolukbasi_female_list, pkl_dict, True)
+    evaluated_occupations_WinoBias = evaluate_words_for_gender(occupations_list_WinoBias, bolukbasi_male_list, bolukbasi_female_list, pkl_dict, True)
+    print("Female Occupations: ")
+    for word in get_min_or_max_values(evaluated_occupations_WinoBias, 20, True):
+        print(word)
+    print("Male Occupations: ")
+    for word in get_min_or_max_values(evaluated_occupations_WinoBias, 20, False):
+        print(word)
     print("Female verbs: ")
-    for word in get_min_or_max_values(evaluated_verbs, 100, True):
+    for word in get_min_or_max_values(evaluated_verbs, 20, True):
         print(word)
     print("Male verbs: ")
-    for word in get_min_or_max_values(evaluated_verbs, 100, False):
+    for word in get_min_or_max_values(evaluated_verbs, 20, False):
         print(word)
     print("Female adjectives: ")
-    for word in get_min_or_max_values(evaluated_adjectives, 100, True):
+    for word in get_min_or_max_values(evaluated_adjectives, 20, True):
         print(word)
     print("Male adjectives: ")
-    for word in get_min_or_max_values(evaluated_adjectives, 100, False):
+    for word in get_min_or_max_values(evaluated_adjectives, 20, False):
         print(word)
 
-    evaluated_words = evaluate_words_for_gender(list(pkl_dict.keys()), bolukbasi_male_list, bolukbasi_female_list, pkl_dict, True)
+    # evaluated_words = evaluate_words_for_gender(list(pkl_dict.keys()), bolukbasi_male_list, bolukbasi_female_list, pkl_dict, True)
     print("Get all gender Female words: ")
     for word in get_min_or_max_values(evaluated_words, 20, True):
         print(word)
