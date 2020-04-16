@@ -12,7 +12,28 @@ import time
 from statistics import mean
 import re
 from string import digits
+"""Translates text into the target language.
 
+Target must be an ISO 639-1 language code.
+See https://g.co/cloud/translate/v2/translate-reference#supported_languages
+"""
+"""
+from google
+translate_client = translate.Client()
+
+if isinstance(text, six.binary_type):
+    text = text.decode('utf-8')
+
+# Text can also be a sequence of strings, in which case this method
+# will return a sequence of results for each text.
+result = translate_client.translate(
+    text, target_language=target)
+
+print(u'Text: {}'.format(result['input']))
+print(u'Translation: {}'.format(result['translatedText']))
+print(u'Detected source language: {}'.format(
+    result['detectedSourceLanguage']))
+    """
 
 # from sklearn.metrics.pairwise import cosine_similarity
 
@@ -189,11 +210,33 @@ def get_sentences(path_sentences, occu_list):
             f.write("\n")
     print("Unique sentences:", len(sentences_list), "\n", sentences_list)
 
+def add_adj_to_sentences(path_sentences, adj_list):
+    with open(path_sentences, "r", encoding="utf-8") as f:
+        replace_list = ["The ", "the "]
+        adj_sentences = []
+        for line in f:
+            values = line.split("\t")
+            occupation = values[3].replace("The ", "").replace("the ", "")
+            print(occupation)
+            sentence = values[2]
+            print(sentence)
+            for adj in adj_list:
+                replacement = adj + " " + occupation
+                print(replacement)
+                # TODO: FIX REPLACEMENT
+                sentence_plus_adj = sentence.replace(occupation, "XYZ")
+                print(sentence_plus_adj)
+                adj_sentences.append(sentence_plus_adj)
+
+
+
 
 if __name__ == "__main__":
     occupations_list_WinoBias = get_occupations("/home/jonas/Documents/GitRepos/Words/WinoBias.txt")
     get_sentences("/home/jonas/Documents/GitRepos/Words/WinoBias.txt", occupations_list_WinoBias)
     # get_occupations("/home/jonas/Documents/GitRepos/Words/Sentences_Occupations_Stanovsky.txt")
+
+    add_adj_to_sentences("/home/jonas/Documents/GitRepos/Words/WinoBias.txt", ["sassy", "brunette", "gorgeous", "grizzled", "burly", "scruffy"])
 
     adjectives_list = load_vocab_to_list("/home/jonas/Documents/GitRepos/Words/Adjectives.txt")
     verbs_list = load_vocab_to_list("/home/jonas/Documents/GitRepos/Words/Verbs.txt")
