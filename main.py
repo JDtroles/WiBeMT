@@ -12,6 +12,11 @@ import time
 from statistics import mean
 import re
 from string import digits
+from pathlib import Path
+import os.path
+import tkinter as tk
+from tkinter import filedialog
+
 """Translates text into the target language.
 
 Target must be an ISO 639-1 language code.
@@ -34,6 +39,7 @@ print(u'Translation: {}'.format(result['translatedText']))
 print(u'Detected source language: {}'.format(
     result['detectedSourceLanguage']))
     """
+
 
 # from sklearn.metrics.pairwise import cosine_similarity
 
@@ -165,7 +171,7 @@ def sort_bolukbasi_gender_list(gender_list_path, fem_list, ma_list, word_emb):
     return gender_list_male, gender_list_female
 
 
-def get_occupations(path):
+def get_occupations(path) -> list:
     occupations = set()
     with open(path, 'r', encoding="utf-8") as f:
         for line in f:
@@ -210,33 +216,88 @@ def get_sentences(path_sentences, occu_list):
             f.write("\n")
     print("Unique sentences:", len(sentences_list), "\n", sentences_list)
 
+
 def add_adj_to_sentences(path_sentences, adj_list):
+    # TODO: add try except block to read function
+    '''
+    try:
+    with open('/etc/hosts') as f:
+        print(f.readlines())
+        # Do something with the file
+    except FileNotFoundError:
+        print("File not accessible")
+'''
     with open(path_sentences, "r", encoding="utf-8") as f:
-        replace_list = ["The ", "the "]
-        adj_sentences = []
+        adj_sentences: list = []
+        n_of_letters: int = 0
         for line in f:
+            line = line.strip("\n")
             values = line.split("\t")
             occupation = values[3].replace("The ", "").replace("the ", "")
-            print(occupation)
             sentence = values[2]
-            print(sentence)
             for adj in adj_list:
                 replacement = adj + " " + occupation
-                print(replacement)
-                # TODO: FIX REPLACEMENT
-                sentence_plus_adj = sentence.replace(occupation, "XYZ")
-                print(sentence_plus_adj)
+                sentence_plus_adj = sentence.replace(occupation, replacement)
+                n_of_letters += len(sentence_plus_adj)
                 adj_sentences.append(sentence_plus_adj)
+    with open("/home/jonas/Documents/GitRepos/Words/sentences_WinoBias_with ADJECTIVES.txt", "w") as f:
+        for elem in adj_sentences:
+            f.write(elem)
+            f.write("\n")
+    print("Zeichen:", n_of_letters)
 
 
+def write_list_to_file(list_to_save, nested_bool):
+
+
+    root = tk.Tk()
+    root.withdraw()
+
+    file_saver = filedialog.asksaveasfile("w", parent=root, initialdir="/home/jonas/Documents/GitRepos/Words", defaultextension=".txt")
+    if file_saver is None:
+        return
+    for item in list_to_save:
+        if not nested_bool:
+            file_saver.write(str(item))
+        else:
+            # TODO: fix function so no "\t" is added at the end of each line
+            for value in item:
+                file_saver.write(str(value))
+                file_saver.write("\t")
+        file_saver.write("\n")
+    print("File saved")
+    '''
+    while True:
+        filename = input("Enter a file name: ")
+        try:
+            if not Path(file_path).is_file():
+                break
+        except FileExistsError:
+            print("There already is a file with this filename.")
+            continue
+    print("Filename is:", filename)
+
+    file_to_open = data_folder / filename
+    with open(file_to_open, "w") as f:
+        for item in list_to_save:
+            if not nested_bool:
+                f.write(item, "\n")
+            else:
+                for value in item:
+                    f.write(value, "\t")
+                f.write("\n")
+    '''
+    # print(filename)
 
 
 if __name__ == "__main__":
+    write_list_to_file([[1,2,3,4,5,6],["a", "b", "c"], ["trallalala]"]], True)
     occupations_list_WinoBias = get_occupations("/home/jonas/Documents/GitRepos/Words/WinoBias.txt")
     get_sentences("/home/jonas/Documents/GitRepos/Words/WinoBias.txt", occupations_list_WinoBias)
     # get_occupations("/home/jonas/Documents/GitRepos/Words/Sentences_Occupations_Stanovsky.txt")
 
-    add_adj_to_sentences("/home/jonas/Documents/GitRepos/Words/WinoBias.txt", ["sassy", "brunette", "gorgeous", "grizzled", "burly", "scruffy"])
+    add_adj_to_sentences("/home/jonas/Documents/GitRepos/Words/WinoBias.txt",
+                         ["sassy", "brunette", "gorgeous", "grizzled", "burly", "scruffy"])
 
     adjectives_list = load_vocab_to_list("/home/jonas/Documents/GitRepos/Words/Adjectives.txt")
     verbs_list = load_vocab_to_list("/home/jonas/Documents/GitRepos/Words/Verbs.txt")
@@ -245,8 +306,6 @@ if __name__ == "__main__":
     print(adjectives_list[0:10])
     print(len(verbs_list))
     print(verbs_list[0:10])
-
-    # TODO: tutorial -> https://towardsdatascience.com/word-embeddings-with-code2vec-glove-and-spacy-5b26420bf632
 
     # glove.840B = 2196017
     # glove.6B = 400000
@@ -334,9 +393,11 @@ if __name__ == "__main__":
 
     print("\n", "Bolukbasi list: \n", evaluate_words_for_gender(bolukbasi_base, male_list, female_list, pkl_dict, True))
 
-    evaluated_adjectives = evaluate_words_for_gender(adjectives_list, bolukbasi_male_list, bolukbasi_female_list, pkl_dict, True)
+    evaluated_adjectives = evaluate_words_for_gender(adjectives_list, bolukbasi_male_list, bolukbasi_female_list,
+                                                     pkl_dict, True)
     evaluated_verbs = evaluate_words_for_gender(verbs_list, bolukbasi_male_list, bolukbasi_female_list, pkl_dict, True)
-    evaluated_occupations_WinoBias = evaluate_words_for_gender(occupations_list_WinoBias, bolukbasi_male_list, bolukbasi_female_list, pkl_dict, True)
+    evaluated_occupations_WinoBias = evaluate_words_for_gender(occupations_list_WinoBias, bolukbasi_male_list,
+                                                               bolukbasi_female_list, pkl_dict, True)
     print("Female Occupations: ")
     for word in get_min_or_max_values(evaluated_occupations_WinoBias, 20, True):
         print(word)
@@ -356,13 +417,16 @@ if __name__ == "__main__":
     for word in get_min_or_max_values(evaluated_adjectives, 20, False):
         print(word)
 
-    # evaluated_words = evaluate_words_for_gender(list(pkl_dict.keys()), bolukbasi_male_list, bolukbasi_female_list, pkl_dict, True)
+
+    '''
+    evaluated_words = evaluate_words_for_gender(list(pkl_dict.keys()), bolukbasi_male_list, bolukbasi_female_list, pkl_dict, True)
     print("Get all gender Female words: ")
     for word in get_min_or_max_values(evaluated_words, 20, True):
         print(word)
     print("Get all gender Male words: ")
     for word in get_min_or_max_values(evaluated_words, 20, False):
         print(word)
+    '''
 
     # if "penis" in embeddings_dict:
     #     print("Yes, 'penis' is one of the keys in the embeddings_dict dictionary")
