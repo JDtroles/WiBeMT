@@ -83,13 +83,6 @@ def closest(space, coord, n=10):
     return closest
 
 
-def fasterclosest(input_vectors, query):
-    ranks = np.dot(query, input_vectors.T) / np.sqrt(np.sum(input_vectors ** 2, 1))
-    most_similar = []
-    [most_similar.append(idx) for idx in ranks.argsort()[::-1]]
-    return most_similar
-
-
 def get_bias_score(comp_word, male_words, female_words, word_embedding, cosine):
     if comp_word in word_embedding:
         male_values = []
@@ -123,29 +116,55 @@ def get_min_or_max_values(tuples, n, min):
     else:
         return tuples[(len(tuples) - n):]
 
+
 # TODO: fniish get_filename AND restructure all read functions
-def get_filename(*file_type: str):
-    if file_type == ".pickle":
+def get_file_saver_instance(*file_type: str):
+    root = tk.Tk()
+    root.withdraw()
+    if file_type == ".txt":
         # Load data (deserialize)
-        filename = filedialog.askopenfilename(initialdir=INITIAL_DIR, defaultextension=".pickle")
-    elif file_type == ".txt":
-        filename = filedialog.askopenfilename(initialdir=INITIAL_DIR, defaultextension=".txt")
+        file_saver = filedialog.asksaveasfile("w", parent=root, initialdir=INITIAL_DIR, defaultextension=".txt")
     else:
-        filename = filedialog.askopenfilename(initialdir=INITIAL_DIR)
-    return filename
+        file_saver = filedialog.asksaveasfile("w", parent=root, initialdir=INITIAL_DIR)
+    return file_saver
 
 
+def get_file_path_for_saving(file_extension: str):
+    root = tk.Tk()
+    root.withdraw()
+
+    file_path = Path(filedialog.asksaveasfilename(parent=root, initialdir=INITIAL_DIR)).with_suffix(file_extension)
+    return file_path
+
+
+def get_file_path_for_loading():
+    root = tk.Tk()
+    root.withdraw()
+
+    file_path = Path(filedialog.askopenfilename(parent=root, initialdir=INITIAL_DIR))
+    return file_path
 
 
 def save_dict_to_pkl(dict):
+    file_path = get_file_path_for_saving(".pickle")
     # Store data
-    with open(path, 'wb') as handle:
-        pickle.dump(dict, handle, protocol=pickle.HIGHEST_PROTOCOL)
+
+    if file_path is None:
+        print("Did not save:", file_path)
+        return
+    try:
+        with open(file_path, 'wb') as handle:
+            pickle.dump(dict, handle, protocol=pickle.HIGHEST_PROTOCOL)
+            print("Saved file to", file_path)
+        return
+    except FileExistsError:
+        print("Could not save dict to pickle")
 
 
-def load_pkl_to_dict(path):
+def load_pkl_to_dict():
+    file_path = get_file_path_for_loading()
     # Load data
-    with open(path, 'rb') as handle:
+    with open(file_path, 'rb') as handle:
         unserialized_data = pickle.load(handle)
     return unserialized_data
 
@@ -263,13 +282,9 @@ def add_adj_to_sentences(path_sentences, adj_list):
 
 
 def write_list_to_file(list_to_save, nested_bool):
-
-
-    root = tk.Tk()
-    root.withdraw()
-
-    file_saver = filedialog.asksaveasfile("w", parent=root, initialdir=INITIAL_DIR, defaultextension=".txt")
+    file_saver = get_file_saver_instance(".txt")
     if file_saver is None:
+        print("Not Saved")
         return
     for item in list_to_save:
         if not nested_bool:
@@ -306,6 +321,7 @@ def write_list_to_file(list_to_save, nested_bool):
 
 
 if __name__ == "__main__":
+    save_dict_to_pkl({1})
     write_list_to_file([[1,2,3,4,5,6],["a", "b", "c"], ["trallalala"]], True)
     occupations_list_WinoBias = get_occupations("/home/jonas/Documents/GitRepos/Words/WinoBias.txt")
     get_sentences("/home/jonas/Documents/GitRepos/Words/WinoBias.txt", occupations_list_WinoBias)
@@ -337,7 +353,7 @@ if __name__ == "__main__":
     print("You dumped the pickle in ", duration, " seconds!")
 
     start_time = time.time()
-    pkl_dict = load_pkl_to_dict(pkl_path_840B)
+    pkl_dict = load_pkl_to_dict()
     duration = time.time() - start_time
     print("You loaded the pickle in ", duration, " seconds!")
 
