@@ -260,7 +260,7 @@ def write_list_to_file(list_to_save, nested_bool):
         if not nested_bool:
             file_saver.write(str(item))
         else:
-            # TODO: fix function so no "\t" is added at the end of each line
+            # TODO: fix function so no "\t" is added at the end of each lines
             for value in item:
                 file_saver.write(str(value))
                 file_saver.write("\t")
