@@ -17,6 +17,8 @@ import os.path
 import tkinter as tk
 from tkinter import filedialog
 
+INITIAL_DIR = "/home/jonas/Documents/GitRepos/Words"
+
 """Translates text into the target language.
 
 Target must be an ISO 639-1 language code.
@@ -121,15 +123,28 @@ def get_min_or_max_values(tuples, n, min):
     else:
         return tuples[(len(tuples) - n):]
 
+# TODO: fniish get_filename AND restructure all read functions
+def get_filename(*file_type: str):
+    if file_type == ".pickle":
+        # Load data (deserialize)
+        filename = filedialog.askopenfilename(initialdir=INITIAL_DIR, defaultextension=".pickle")
+    elif file_type == ".txt":
+        filename = filedialog.askopenfilename(initialdir=INITIAL_DIR, defaultextension=".txt")
+    else:
+        filename = filedialog.askopenfilename(initialdir=INITIAL_DIR)
+    return filename
 
-def save_dict_to_pkl(dict, path):
-    # Store data (serialize)
+
+
+
+def save_dict_to_pkl(dict):
+    # Store data
     with open(path, 'wb') as handle:
         pickle.dump(dict, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
 
 def load_pkl_to_dict(path):
-    # Load data (deserialize)
+    # Load data
     with open(path, 'rb') as handle:
         unserialized_data = pickle.load(handle)
     return unserialized_data
@@ -226,7 +241,7 @@ def add_adj_to_sentences(path_sentences, adj_list):
         # Do something with the file
     except FileNotFoundError:
         print("File not accessible")
-'''
+    '''
     with open(path_sentences, "r", encoding="utf-8") as f:
         adj_sentences: list = []
         n_of_letters: int = 0
@@ -253,17 +268,17 @@ def write_list_to_file(list_to_save, nested_bool):
     root = tk.Tk()
     root.withdraw()
 
-    file_saver = filedialog.asksaveasfile("w", parent=root, initialdir="/home/jonas/Documents/GitRepos/Words", defaultextension=".txt")
+    file_saver = filedialog.asksaveasfile("w", parent=root, initialdir=INITIAL_DIR, defaultextension=".txt")
     if file_saver is None:
         return
     for item in list_to_save:
         if not nested_bool:
             file_saver.write(str(item))
         else:
-            # TODO: fix function so no "\t" is added at the end of each lines
-            for value in item:
+            for i, value in enumerate(item):
                 file_saver.write(str(value))
-                file_saver.write("\t")
+                if i+1 < len(item):
+                    file_saver.write("\t")
         file_saver.write("\n")
     print("File saved")
     '''
@@ -291,7 +306,7 @@ def write_list_to_file(list_to_save, nested_bool):
 
 
 if __name__ == "__main__":
-    write_list_to_file([[1,2,3,4,5,6],["a", "b", "c"], ["trallalala]"]], True)
+    write_list_to_file([[1,2,3,4,5,6],["a", "b", "c"], ["trallalala"]], True)
     occupations_list_WinoBias = get_occupations("/home/jonas/Documents/GitRepos/Words/WinoBias.txt")
     get_sentences("/home/jonas/Documents/GitRepos/Words/WinoBias.txt", occupations_list_WinoBias)
     # get_occupations("/home/jonas/Documents/GitRepos/Words/Sentences_Occupations_Stanovsky.txt")
