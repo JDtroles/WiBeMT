@@ -4,12 +4,13 @@ from pathlib import Path
 import tkinter as tk
 from tkinter import filedialog
 import numpy as np
+import re
+
 
 
 INITIAL_DIR = "/home/jonas/Documents/GitRepos/Words"
 
 
-# TODO: finish get_filename AND restructure all read functions
 def get_file_saver_instance(file_type: str = None):
     root = tk.Tk()
     root.withdraw()
@@ -86,7 +87,7 @@ def load_txt_to_dict() -> dict:
     return embeddings_dict
 
 
-def load_vocab_to_list() -> list:
+def load_vocab_to_list_at_snd_pos() -> list:
     file_path = get_file_path_for_loading("Choose a word list file in .txt format")
 
     vocab_list = []
@@ -95,6 +96,31 @@ def load_vocab_to_list() -> list:
             values = line.split(" ")
             word = values[1]
             vocab_list.append(word.rstrip())
+    return vocab_list
+
+
+def load_vocab_to_list() -> list:
+    file_path = get_file_path_for_loading("Choose a word list file in .txt format")
+
+    vocab_list = []
+    with open(file_path, 'r', encoding="utf-8") as f:
+        for line in tqdm(f.readlines(), desc="Creating vocab list: "):
+            vocab_list.append(line.rstrip())
+    return vocab_list
+
+
+def load_nested_vocab_to_list() -> list:
+    file_path = get_file_path_for_loading("Choose a nested word list file in .txt format")
+
+    vocab_list = []
+    with open(file_path, 'r', encoding="utf-8") as f:
+        for line in tqdm(f.readlines(), desc="Creating vocab list: "):
+            line = line.replace("[", "")
+            line = line.replace("]", "")
+            values = line.split(", ")
+            for value in values:
+                word = value.strip("'")
+                vocab_list.append(word.rstrip())
     return vocab_list
 
 
