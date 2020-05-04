@@ -87,7 +87,7 @@ def load_txt_to_dict() -> dict:
     return embeddings_dict
 
 
-def load_vocab_to_list_at_snd_pos() -> list:
+def load_vocab_to_list_at_2nd_pos() -> list:
     file_path = get_file_path_for_loading("Choose a word list file in .txt format")
 
     vocab_list = []
@@ -95,6 +95,17 @@ def load_vocab_to_list_at_snd_pos() -> list:
         for line in tqdm(f.readlines(), desc="Creating vocab list: "):
             values = line.split(" ")
             word = values[1]
+            vocab_list.append(word.rstrip())
+    return vocab_list
+
+def load_vocab_to_list_at_1st_pos() -> list:
+    file_path = get_file_path_for_loading("Choose a word list file in .txt format")
+
+    vocab_list = []
+    with open(file_path, 'r', encoding="utf-8") as f:
+        for line in tqdm(f.readlines(), desc="Creating vocab list: "):
+            values = line.split("\t")
+            word = values[0]
             vocab_list.append(word.rstrip())
     return vocab_list
 

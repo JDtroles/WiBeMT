@@ -105,16 +105,16 @@ def get_bias_score(compare_list: list, male_words: list, female_words: list, wor
             word_dict[comp_word] = mean(male_values) - mean(female_values)
     return word_dict
 
-def get_bias_score_matrix(compare_list: list, male_vectors: np.array, female_vectors: np.array, word_embedding: dict,
+def get_bias_score_matrix(compare_list: list, male_vectors: np.array, female_vectors: np.array, word_embedding: [list],
                    cosine: bool) -> dict:
-    word_dict = {}
+    word_tuples = []
     for comp_word in compare_list:
         if comp_word in word_embedding:
             comp_word_vector = np.array(word_embedding.get(comp_word))
             male_values = cosine_distance(comp_word_vector, male_vectors)
             female_values = cosine_distance(comp_word_vector, female_vectors)
-            word_dict[comp_word] = np.mean(male_values) - np.mean(female_values)
-    return word_dict
+            word_tuples.append([comp_word, np.mean(male_values) - np.mean(female_values)])
+    return word_tuples
 
 
 def evaluate_words_for_gender(word_list, male_words, female_words, word_embedding, cosine):
@@ -221,7 +221,7 @@ def add_adj_to_sentences(path_sentences, adj_list):
                 sentence_plus_adj = sentence.replace(occupation, replacement)
                 n_of_letters += len(sentence_plus_adj)
                 adj_sentences.append(sentence_plus_adj)
-    with open("/home/jonas/Documents/GitRepos/Words/sentences_WinoBias_with ADJECTIVES.txt", "w") as f:
+    with open("/home/jonas/Documents/GitRepos/Words/sentences_WinoBias_with_ADJECTIVES_PRESENTATION.txt", "w") as f:
         for elem in adj_sentences:
             f.write(elem)
             f.write("\n")
@@ -261,7 +261,11 @@ if __name__ == "__main__":
     # get_unique_sentences("/home/jonas/Documents/GitRepos/Words/WinoBias.txt", occupations_list_WinoBias)
     # get_occupations("/home/jonas/Documents/GitRepos/Words/Sentences_Occupations_Stanovsky.txt")
 
-    # add_adj_to_sentences("/home/jonas/Documents/GitRepos/Words/WinoBias.txt", ["sassy", "brunette", "gorgeous", "grizzled", "burly", "scruffy"])
+    adj_for_sentences = reader_saver.load_vocab_to_list_at_1st_pos()
+
+    add_adj_to_sentences("/home/jonas/Documents/GitRepos/Words/WinoBias.txt", adj_for_sentences)
+
+    breakpoint()
 
     # adjectives_list = reader_saver.load_vocab_to_list()
     # verbs_list = reader_saver.load_vocab_to_list()
@@ -281,7 +285,7 @@ if __name__ == "__main__":
     duration = time.time() - start_time
     print("You loaded the pickle in ", duration, " seconds!")
 
-    adjectives = list(pkl_dict.keys())
+    adjectives = reader_saver.load_vocab_to_list_at_snd_pos()
     results = []
 
 
@@ -293,8 +297,13 @@ if __name__ == "__main__":
              word_emb=pkl_dict,
              cosine=True)
     '''
+    # Long word lists
     male_words = word_lists.get_bolukbasi_male_list()
-    female_words= word_lists.get_bolukbasi_female_list()
+    female_words = word_lists.get_bolukbasi_female_list()
+
+    # he / she as word lists
+    #male_words = ["he"]
+    #female_words = ["she"]
 
     male_vectors = np.array([pkl_dict.get(male_word) for male_word in male_words])
     female_vectors = np.array([pkl_dict.get(female_word) for female_word in female_words])
@@ -310,14 +319,28 @@ if __name__ == "__main__":
     #some single threading..
     chunk_size = 3000
     split = split_list_equally(adjectives, chunk_size)
-    bias_score_dict = {}
+    bias_scores = []
     for list_part in tqdm(split, desc="Get scoring of words: ", total=len(adjectives) // chunk_size):
-        bias_score_dict.update(get_bias_score_matrix(list_part, male_vectors, female_vectors, pkl_dict, True))
+        for result in get_bias_score_matrix(list_part, male_vectors, female_vectors, pkl_dict, True):
+            bias_scores.append(result)
+            #print(result)
 
-    breakpoint()
+    sorted_bias_scores = sorted(bias_scores, key = lambda x: x[1])
+    #print("Highest Scores: ")
+    #print([elem for elem in sorted_bias_scores[0:1000]])
+    reader_saver.write_list_to_file(sorted_bias_scores[0:100])
 
-    # some fancy multithreading..
-    chunk_size = 1000
+    #print("Lowest Scores: ")
+    #print([elem for elem in sorted_bias_scores[len(sorted_bias_scores) - 1000:]])
+    reader_saver.write_list_to_file(sorted_bias_scores[len(sorted_bias_scores) - 100:])
+
+
+
+
+
+
+    '''    # some fancy multithreading..
+    chunk_size = 5000
     executor = concurrent.futures.ThreadPoolExecutor()
     futures = []
     for list_part in tqdm(split_list_equally(adjectives, chunk_size), desc="Get scoring of words: "):
@@ -327,7 +350,7 @@ if __name__ == "__main__":
     for future in tqdm(futures, desc="working.."):
         bias_score_dict.update(future.result())
 
-    breakpoint()
+    breakpoint()'''
     '''
     with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor:
         for list_part in tqdm(split_list_equally(adjectives, 500), desc="Get scoring of words: "):
