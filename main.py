@@ -2,8 +2,8 @@
 # TODO: word2vec GoogleNews model (Bolukbasi)
 
 
-import spacy
-import annoy
+# import spacy
+# import annoy
 import numpy as np
 import math
 from tqdm import tqdm
@@ -20,7 +20,8 @@ import concurrent.futures
 
 import lists as word_lists
 import reader_saver
-import spacy_functions
+import plotter
+# import spacy_functions
 
 """Translates text into the target language.
 
@@ -105,8 +106,8 @@ def get_bias_score(compare_list: list, male_words: list, female_words: list, wor
             word_dict[comp_word] = mean(male_values) - mean(female_values)
     return word_dict
 
-def get_bias_score_matrix(compare_list: list, male_vectors: np.array, female_vectors: np.array, word_embedding: [list],
-                   cosine: bool) -> dict:
+
+def get_bias_score_matrix(compare_list: list, male_vectors: np.array, female_vectors: np.array, word_embedding: [list]) -> [list]:
     word_tuples = []
     for comp_word in compare_list:
         if comp_word in word_embedding:
@@ -245,6 +246,32 @@ def split_list_equally(lst, size_of_chunks):
         yield lst[i:i + size_of_chunks]
 
 
+# TODO: CREATE FUNCTION TO GET PLOTTER WORDS
+# 1st: rank words by bolukbasi-lists
+# 2nd: rank words by he - she
+# 3rd: return list: [[he-she-value, bolukbasi-value, "word"], ...]
+def get_plotting_word_list(words: list, word_emb) -> [list]:
+    male_words = word_lists.get_bolukbasi_male_list()
+    female_words = word_lists.get_bolukbasi_female_list()
+
+    male_vectors = np.array([pkl_dict.get(male_word) for male_word in male_words])
+    female_vectors = np.array([pkl_dict.get(female_word) for female_word in female_words])
+
+    he_vector = np.array(pkl_dict.get("he"))
+    she_vector = np.array(pkl_dict.get("she"))
+
+    words_to_plot = []
+
+    for word in words:
+        x_val = get_bias_score_matrix([word], he_vector, she_vector, word_emb)
+        print(x_val)
+        y_val = get_bias_score_matrix([word], male_vectors, female_vectors, word_emb)
+        words_to_plot.append([word, x_val[0][1], y_val[0][1]])
+    print(words_to_plot)
+    return words_to_plot
+
+
+
 '''def run_pool(*, strategy, max_workers=4, comp_word_list=[], male_list=[], fem_list=[], word_emb={}, cosine=True):
     start = time.time()
     with strategy(max_workers=max_workers) as executor:
@@ -261,9 +288,20 @@ if __name__ == "__main__":
     # get_unique_sentences("/home/jonas/Documents/GitRepos/Words/WinoBias.txt", occupations_list_WinoBias)
     # get_occupations("/home/jonas/Documents/GitRepos/Words/Sentences_Occupations_Stanovsky.txt")
 
+    adjectives = reader_saver.load_vocab_to_list_at_1st_pos()
+
+    start_time = time.time()
+    pkl_dict = reader_saver.load_pkl_to_dict()
+    duration = time.time() - start_time
+    print("You loaded the pickle in ", duration, " seconds!")
+
+    plotter.create_word_map(get_plotting_word_list(adjectives, pkl_dict))
+
+    breakpoint()
+
     adj_for_sentences = reader_saver.load_vocab_to_list_at_1st_pos()
 
-    add_adj_to_sentences("/home/jonas/Documents/GitRepos/Words/WinoBias.txt", adj_for_sentences)
+    # add_adj_to_sentences("/home/jonas/Documents/GitRepos/Words/WinoBias.txt", adj_for_sentences)
 
     breakpoint()
 
@@ -285,7 +323,7 @@ if __name__ == "__main__":
     duration = time.time() - start_time
     print("You loaded the pickle in ", duration, " seconds!")
 
-    adjectives = reader_saver.load_vocab_to_list_at_snd_pos()
+    adjectives = reader_saver.load_vocab_to_list_at_2nd_pos()
     results = []
 
 

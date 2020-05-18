@@ -7,8 +7,7 @@ import numpy as np
 import re
 
 
-
-INITIAL_DIR = "/home/jonas/Documents/GitRepos/Words"
+INITIAL_DIR = "/home/jonas/Schreibtisch/GitRepos"
 
 
 def get_file_saver_instance(file_type: str = None):
@@ -98,15 +97,17 @@ def load_vocab_to_list_at_2nd_pos() -> list:
             vocab_list.append(word.rstrip())
     return vocab_list
 
+
 def load_vocab_to_list_at_1st_pos() -> list:
     file_path = get_file_path_for_loading("Choose a word list file in .txt format")
 
     vocab_list = []
     with open(file_path, 'r', encoding="utf-8") as f:
         for line in tqdm(f.readlines(), desc="Creating vocab list: "):
-            values = line.split("\t")
-            word = values[0]
-            vocab_list.append(word.rstrip())
+            if line:
+                values = line.split("\t")
+                word = values[0]
+                vocab_list.append(word.rstrip())
     return vocab_list
 
 
