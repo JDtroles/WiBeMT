@@ -7,7 +7,7 @@ import pandas as pd
 # adjust_text solution with matplotlib
 def create_word_map(word_list: list) -> None:
     plt.style.use("seaborn")
-    plt.figure(figsize=(15,9))
+    plt.figure(figsize=(12,8))
     plt.ylabel("Blokubasi List Value")
     plt.xlim((-0.25, 0.25))
     plt.xlabel("He - She Value")
@@ -17,9 +17,9 @@ def create_word_map(word_list: list) -> None:
         word = elem[0]
         x = elem[1]
         y = elem[2]
-        plt.plot(x, y, 'k.')
-        texts.append(plt.text(x, y, word))
-    adjust_text(texts, autoalign="xy", only_move={'text': 'xy'}, arrowprops=dict(arrowstyle="->", color='r', lw=1))
+        plt.plot(x, y, color='royalblue', marker='o')
+        texts.append(plt.text(x, y, word, fontsize='large'))
+    adjust_text(texts, only_move={'text': 'xy'}, force_text=1, arrowprops=dict(arrowstyle="->", color='lightcoral',alpha=.5, lw=1))
     #adjust_text(texts, autoalign='xy', only_move={'text': 'xy'}, arrowprops=dict(arrowstyle='->', color='red'))
     plt.show()
     return None
