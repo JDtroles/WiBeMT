@@ -288,7 +288,29 @@ if __name__ == "__main__":
     # get_unique_sentences("/home/jonas/Documents/GitRepos/Words/WinoBias.txt", occupations_list_WinoBias)
     # get_occupations("/home/jonas/Documents/GitRepos/Words/Sentences_Occupations_Stanovsky.txt")
 
+    start_time = time.time()
+    pkl_dict = reader_saver.load_pkl_to_dict()
+    duration = time.time() - start_time
+    print("You loaded the pickle in ", duration, " seconds!")
+
+    # he / she as word lists
+    male_words = ["he"]
+    female_words = ["she"]
+
+    male_vectors = np.array([pkl_dict.get(male_word) for male_word in male_words])
+    female_vectors = np.array([pkl_dict.get(female_word) for female_word in female_words])
+
+    adjectives = reader_saver.load_vocab_to_list_at_2nd_pos()
+
+    ranked_words = get_bias_score_matrix(adjectives, male_vectors, female_vectors, pkl_dict)
+
+    reader_saver.write_list_to_file(sorted(ranked_words, key=lambda x: x[1]))
+
+    breakpoint()
+
+
     adjectives = reader_saver.load_vocab_to_list_at_1st_pos()
+    print(adjectives)
 
     start_time = time.time()
     pkl_dict = reader_saver.load_pkl_to_dict()

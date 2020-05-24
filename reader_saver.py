@@ -7,10 +7,12 @@ import numpy as np
 import re
 
 
+INITIAL_DIR_WORDS = "/home/jonas/Nextcloud/#CitH/Masterarbeit/Words"
+INITIAL_DIR_EMBEDDINGS = "/home/jonas/Schreibtisch/GitRepos/PretrainedWordVectors"
 INITIAL_DIR = "/home/jonas/Schreibtisch/GitRepos"
 
 
-def get_file_saver_instance(file_type: str = None):
+def get_file_saver_instance(file_type: str = None) -> Path:
     root = tk.Tk()
     root.withdraw()
 
@@ -23,7 +25,7 @@ def get_file_saver_instance(file_type: str = None):
     return file_saver
 
 
-def get_file_path_for_saving(file_extension: str = None) -> str:
+def get_file_path_for_saving(file_extension: str = None) -> Path:
     root = tk.Tk()
     root.withdraw()
 
