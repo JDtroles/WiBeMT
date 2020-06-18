@@ -5,30 +5,11 @@
 # import spacy
 # import annoy
 import numpy as np
-import time
 
+import get_ressources
 import reader_saver
-import plotter
 # import spacy_functions
 from evaluator import get_bias_score_matrix
-from getter import get_plotting_word_list
-
-
-def split_dict_equally(input_dict, chunks=1000):
-    return_list = [dict() for idx in range(chunks)]
-    idx = 0
-    for key in input_dict:
-        return_list[idx][key] = None
-        if idx < chunks - 1:
-            idx += 1
-        else:
-            idx = 0
-    return return_list
-
-
-def split_list_equally(lst, size_of_chunks):
-    for i in range(0, len(lst), size_of_chunks):
-        yield lst[i:i + size_of_chunks]
 
 
 # TODO: CREATE FUNCTION TO GET PLOTTER WORDS
@@ -36,105 +17,142 @@ def split_list_equally(lst, size_of_chunks):
 # 2nd: rank words by he - she
 # 3rd: return list: [[he-she-value, bolukbasi-value, "word"], ...]
 
+################
+# PIPELINES... #
+################
+# ...that implement one step of workflow from loading data to saving data
 
-def pipeline() -> bool:
+# pipeline_1 ranks words and saves them as a dict with the following format:
+# word -> origin -> selection metric -> glove gender value -> fastText gender value
+def pipeline_1() -> bool:
     # initialize dict
-    word_score = dict()
+    word_score = {"word": {
+        "origin": "some origin",
+        "Glove_he_she": 0,
+        "Glove_bolukbasi": 0,
+        "fastText_he_she": 0,
+        "fastText_bolukbasi": 0,
+        "sum_all": 0
+    }
+    }
 
-
-    # Load word list
-    start_time = time.time()
+    # Load word embedding 1
+    print("Choose the GLOVE word embedding .PKL you want to load")
     pkl_dict = reader_saver.load_pkl_to_dict()
-    duration = time.time() - start_time
-    print("You loaded the pickle in ", duration, " seconds!")
 
     # he / she as word lists
     male_words = ["he"]
     female_words = ["she"]
 
+    # bolukbasi gender word lists
+    male_words_boluk = get_ressources.get_bolukbasi_male_list()
+    female_words_boluk = get_ressources.get_bolukbasi_female_list()
+
+    # convert words to corresponding vectors
     male_vectors = np.array([pkl_dict.get(male_word) for male_word in male_words])
     female_vectors = np.array([pkl_dict.get(female_word) for female_word in female_words])
+    male_vectors_boluk = np.array([pkl_dict.get(male_word) for male_word in male_words_boluk])
+    female_vectors_boluk = np.array([pkl_dict.get(female_word) for female_word in female_words_boluk])
 
-    adjectives = reader_saver.load_vocab_to_list_at_2nd_pos()
+    # load the word list you want to rank
+    print("Now choose the origin of the word list:")
+    print("patternbasedwriting.com = 1")
+    print("Oxford Dictionary = 2")
+    print("Glove = 3")
+    print("fastText = 4")
+    while True:
+        try:
+            origin_int = int(input("Enter the corresponding number:"))
+            if origin_int < 1 or origin_int > 4:
+                raise ValueError
+            elif origin_int == 1:
+                origin = "patternbasedwriting.com"
+                print("You chose \"patternbasedwriting.com\" as origin")
+                print("Now choose the corresponding wordlist in .txt format")
+                word_list = reader_saver.load_vocab_to_list_at_2nd_pos()
+                break
+            elif origin_int == 2:
+                origin = "Oxford Dictionary"
+                print("You chose \"Oxford Dictionary\" as origin")
+                # print("Now choose the corresponding wordlist in .txt format")
+                print("No Oxford list available yet")
+                break
+            elif origin_int == 3:
+                origin = "Glove"
+                print("You chose \"Glove\" as origin")
+                print("Now choose the corresponding wordlist in .txt format")
+                word_list = reader_saver.load_nested_vocab_to_list()
+                break
+            elif origin_int == 4:
+                origin = "fastText"
+                print("You chose \"fastText\" as origin")
+                print("Now choose the corresponding wordlist in .txt format")
+                word_list = reader_saver.load_nested_vocab_to_list()
+                break
 
-    ranked_words = get_bias_score_matrix(adjectives, male_vectors, female_vectors, pkl_dict)
+        except ValueError:
+            print("Please enter an int between 1 - 4")
 
-    reader_saver.write_list_to_file(sorted(ranked_words, key=lambda x: x[1]))
+    # ranking with he-she and Glove
+    print("Ranking with he-she and Glove")
+    ranked_words = get_bias_score_matrix(word_list, male_vectors, female_vectors, pkl_dict)
+    for elem in ranked_words:
+        word_score[elem[0]] = {}
+        word_score[elem[0]]["origin"] = origin
+        word_score[elem[0]]["Glove_he_she"] = elem[1]
+        word_score[elem[0]]["fastText_he_she"] = 99
+        word_score[elem[0]]["fastText_bolukbasi"] = 99
 
-    breakpoint()
+    # ranking with bolukbasi and Glove
+    print("Ranking with bolukbasi and Glove")
+    ranked_words = get_bias_score_matrix(word_list, male_vectors_boluk, female_vectors_boluk, pkl_dict)
+    for elem in ranked_words:
+        word_score[elem[0]]["Glove_bolukbasi"] = elem[1]
+
+    # Load word embedding 2
+    print("Choose the fastText word embedding .PKL you want to load")
+    pkl_dict = reader_saver.load_pkl_to_dict()
+
+    # convert words to corresponding vectors
+    male_vectors = np.array([pkl_dict.get(male_word) for male_word in male_words])
+    female_vectors = np.array([pkl_dict.get(female_word) for female_word in female_words])
+    male_vectors_boluk = np.array([pkl_dict.get(male_word) for male_word in male_words_boluk])
+    female_vectors_boluk = np.array([pkl_dict.get(female_word) for female_word in female_words_boluk])
+
+    # TODO: improve handling of words which are only present in one of both word embeddings
+    # ranking with he-she and fastText
+    print("Ranking with he-she and fastText")
+    ranked_words = get_bias_score_matrix(word_list, male_vectors, female_vectors, pkl_dict)
+    for elem in ranked_words:
+        if elem[0] in word_score:
+            word_score[elem[0]]["fastText_he_she"] = elem[1]
+        else:
+            word_score[elem[0]] = {}
+            word_score[elem[0]]["origin"] = origin
+            word_score[elem[0]]["Glove_he_she"] = 99
+            word_score[elem[0]]["Glove_bolukbasi"] = 99
+            word_score[elem[0]]["fastText_he_she"] = elem[1]
+
+
+    # ranking with bolukbasi and fastText
+    print("Ranking with bolukbasi and fastText")
+    ranked_words = get_bias_score_matrix(word_list, male_vectors_boluk, female_vectors_boluk, pkl_dict)
+    for elem in ranked_words:
+        word_score[elem[0]]["fastText_bolukbasi"] = elem[1]
+
+    for key in word_score:
+        word_score[key]["sum_all"] = word_score[key]["Glove_he_she"] + word_score[key]["Glove_bolukbasi"] + \
+                                     word_score[key]["fastText_he_she"] + word_score[key]["fastText_bolukbasi"]
+
+    # TODO: save lists in correct format (see beginning of this pipeline)
+    # modify the "reader_saver.write_list_to_file" for this
+
+    # Save the dict to a file
+    reader_saver.write_list_to_file(sorted(word_score, key=lambda x: word_score[x]["sum_all"]))
+
+    return True
 
 
 if __name__ == "__main__":
-    # occupations_list_WinoBias = get_occupations("/home/jonas/Documents/GitRepos/Words/WinoBias.txt")
-    # get_unique_sentences("/home/jonas/Documents/GitRepos/Words/WinoBias.txt", occupations_list_WinoBias)
-    # get_occupations("/home/jonas/Documents/GitRepos/Words/Sentences_Occupations_Stanovsky.txt")
-
-    start_time = time.time()
-    pkl_dict = reader_saver.load_pkl_to_dict()
-    duration = time.time() - start_time
-    print("You loaded the pickle in ", duration, " seconds!")
-
-    # he / she as word lists
-    male_words = ["he"]
-    female_words = ["she"]
-
-    male_vectors = np.array([pkl_dict.get(male_word) for male_word in male_words])
-    female_vectors = np.array([pkl_dict.get(female_word) for female_word in female_words])
-
-    adjectives = reader_saver.load_vocab_to_list_at_2nd_pos()
-
-    ranked_words = get_bias_score_matrix(adjectives, male_vectors, female_vectors, pkl_dict)
-
-    reader_saver.write_list_to_file(sorted(ranked_words, key=lambda x: x[1]))
-
-    breakpoint()
-
-
-    adjectives = reader_saver.load_vocab_to_list_at_1st_pos()
-    print(adjectives)
-
-    start_time = time.time()
-    pkl_dict = reader_saver.load_pkl_to_dict()
-    duration = time.time() - start_time
-    print("You loaded the pickle in ", duration, " seconds!")
-
-    plotter.create_word_map(get_plotting_word_list(adjectives, pkl_dict))
-
-    breakpoint()
-
-    adj_for_sentences = reader_saver.load_vocab_to_list_at_1st_pos()
-
-    # add_adj_to_sentences("/home/jonas/Documents/GitRepos/Words/WinoBias.txt", adj_for_sentences)
-
-    breakpoint()
-
-    # adjectives_list = reader_saver.load_vocab_to_list()
-    # verbs_list = reader_saver.load_vocab_to_list()
-
-    # embeddings_dict = load_txt_to_dict("/home/jonas/Documents/GitRepos/PretrainedWordVectors/crawl-300d-2M.vec")
-
-    # Reformat textfile with nested list
-    # reader_saver.write_list_to_file(reader_saver.load_nested_vocab_to_list())
-
-    start_time = time.time()
-    # save_dict_to_pkl(embeddings_dict, pkl_path_crawl)
-    duration = time.time() - start_time
-    print("You dumped the pickle in ", duration, " seconds!")
-
-    start_time = time.time()
-    pkl_dict = reader_saver.load_pkl_to_dict()
-    duration = time.time() - start_time
-    print("You loaded the pickle in ", duration, " seconds!")
-
-    adjectives = reader_saver.load_vocab_to_list_at_2nd_pos()
-    results = []
-
-
-    '''    run_pool(strategy=concurrent.futures.ThreadPoolExecutor,
-             max_workers=4,
-             comp_word_list=adjectives,
-             male_list = ["he"],
-             fem_list = ["she"],
-             word_emb=pkl_dict,
-             cosine=True)
-    '''
+    print("main")
+    pipeline_1()

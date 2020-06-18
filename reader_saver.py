@@ -25,7 +25,7 @@ def get_file_saver_instance(file_type: str = None) -> Path:
     return file_saver
 
 
-def get_file_path_for_saving(file_extension: str = None) -> Path:
+def get_file_path_for_saving(file_extension: str = None) -> str:
     root = tk.Tk()
     root.withdraw()
 

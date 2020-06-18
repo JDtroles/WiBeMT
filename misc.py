@@ -16,3 +16,20 @@ def sort_bolukbasi_gender_list(gender_list_path, fem_list, ma_list, word_emb):
                     else:
                         gender_list_female.append(word)
     return gender_list_male, gender_list_female
+
+
+def split_dict_equally(input_dict, chunks=1000):
+    return_list = [dict() for idx in range(chunks)]
+    idx = 0
+    for key in input_dict:
+        return_list[idx][key] = None
+        if idx < chunks - 1:
+            idx += 1
+        else:
+            idx = 0
+    return return_list
+
+
+def split_list_equally(lst, size_of_chunks):
+    for i in range(0, len(lst), size_of_chunks):
+        yield lst[i:i + size_of_chunks]
