@@ -12,7 +12,7 @@ INITIAL_DIR_EMBEDDINGS = "/home/jonas/Schreibtisch/GitRepos/PretrainedWordVector
 INITIAL_DIR = "/home/jonas/Schreibtisch/GitRepos"
 
 
-def get_file_saver_instance(file_type: str = None) -> Path:
+def get_file_saver_instance(file_type: str = None):
     root = tk.Tk()
     root.withdraw()
 
@@ -161,3 +161,18 @@ def write_nested_list_to_file(list_to_save):
                 file_saver.write("\t")
         file_saver.write("\n")
     print("File saved")
+
+
+def write_nested_dict_to_file(dict_to_save: dict, sorted_keys: list):
+    file_saver = get_file_saver_instance(".txt")
+    if file_saver is None:
+        print("Not Saved")
+        return
+    for key in sorted_keys:
+        file_saver.write(str(key))
+        for sub_key in dict_to_save[key]:
+            file_saver.write("\t")
+            file_saver.write(str(sub_key) + ": " + str(dict_to_save[key][sub_key]))
+        file_saver.write("\n")
+    file_saver.close()
+    print("You saved the file")
