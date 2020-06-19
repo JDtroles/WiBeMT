@@ -1,3 +1,5 @@
+import io
+
 from tqdm import tqdm
 import pickle
 from pathlib import Path
@@ -67,6 +69,7 @@ def save_dict_to_pkl(dict_to_save) -> None:
 
 def load_pkl_to_dict() -> dict:
     file_path = get_file_path_for_loading("Choose a word embedding file in .pickle format")
+    print("You selected the file: ", str(file_path))
     # Load data
     try:
         with open(file_path, 'rb') as handle:
@@ -77,7 +80,9 @@ def load_pkl_to_dict() -> dict:
 
 
 def load_txt_to_dict() -> dict:
+    print("Load GloVe .txt file to load")
     file_path = get_file_path_for_loading("Choose a word embedding file in .txt format")
+    print("You selected the file: ", str(file_path))
     embeddings_dict = {}
     with open(file_path, 'r', encoding="utf-8") as f:
         for line in tqdm(f.readlines(), desc="Creating dictionary: "):
@@ -85,6 +90,22 @@ def load_txt_to_dict() -> dict:
             word = values[0]
             vector = np.asarray(values[1:], "float32")
             embeddings_dict[word] = vector
+    return embeddings_dict
+
+# TODO: fix this function / configure GloVe function to work with fastText
+# Load fastText models
+# Code from: https://fasttext.cc/docs/en/english-vectors.html
+# with modifications from Jonas-Dario Troles
+def load_fasttext_vectors() -> dict:
+    print("Select fastText.vec file to load:")
+    file_path = get_file_path_for_loading("Choose a word embedding file in .txt format")
+    print("You selected the file: ", str(file_path))
+    fin = io.open(file_path, 'r', encoding='utf-8', newline='\n', errors='ignore')
+    n, d = map(int, fin.readline().split())
+    embeddings_dict = {}
+    for line in tqdm(fin.readlines(), desc="Creating dictionary: "):
+        tokens = line.rstrip().split(' ')
+        embeddings_dict[tokens[0]] = map(float, tokens[1:])
     return embeddings_dict
 
 
