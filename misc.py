@@ -1,5 +1,7 @@
+import numpy as np
 from tqdm import tqdm
 
+import get_ressources
 from evaluator import get_bias_score
 
 
@@ -33,3 +35,18 @@ def split_dict_equally(input_dict, chunks=1000):
 def split_list_equally(lst, size_of_chunks):
     for i in range(0, len(lst), size_of_chunks):
         yield lst[i:i + size_of_chunks]
+
+
+def get_gender_ranking_vectors(pkl_dict):
+    # he / she as word lists
+    male_words = ["he"]
+    female_words = ["she"]
+    # bolukbasi gender word lists
+    male_words_boluk = get_ressources.get_bolukbasi_male_list()
+    female_words_boluk = get_ressources.get_bolukbasi_female_list()
+    # convert words to corresponding vectors
+    male_vectors = np.array([pkl_dict.get(male_word) for male_word in male_words])
+    female_vectors = np.array([pkl_dict.get(female_word) for female_word in female_words])
+    male_vectors_boluk = np.array([pkl_dict.get(male_word) for male_word in male_words_boluk])
+    female_vectors_boluk = np.array([pkl_dict.get(female_word) for female_word in female_words_boluk])
+    return female_vectors, female_vectors_boluk, male_vectors, male_vectors_boluk

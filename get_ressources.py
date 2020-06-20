@@ -57,10 +57,25 @@ def get_bolukbasi_male_list():
                "administrate", "admire", "admit", "admonish", "adopt", "adore", "adorn", "adsorb", "adulate",
                "advance", "advertise"]'''
 
-
 '''bolukbasi_amiguous = ['deer', 'ma', 'husband', 'boyfriend', 'males', 'husbands', 'sperm', 'fiance', 'suitors',
                       'prostate', 'paternity', 'suitor', 'hubby', 'boyfriends', 'semen']
 '''
+
+
+def get_20_handpicked_adjectives() -> list:
+    handpicked_adjectives = ["brunette", "sassy", "perky", "lovely", "vivacious", "married", "mature", "alluring",
+                             "bubbly", "catty", "grizzled", "wiry", "shifty", "affable", "illustrious", "suave",
+                             "eminent", "jovial", "decent", "rascally"]
+    return handpicked_adjectives
+
+
+def get_20_handpicked_verbs() -> list:
+    handpicked_verbs = ["tease", "shower", "undress", "sew", "marry", "seduce", "bake", "milk", "wed", "flirt",
+                        "allure", "lick", "gossip", "accessorize", "moan", "knit", "sample", "kiss", "treat", "crochet",
+                        "bath", "tackle", "swagger", "reckon", "overthrow", "draft", "preach", "gallop", "apprehend",
+                        "parley", "maul", "trade", "forge", "hoist", "dent", "exalt", "brawl", "decide", "resign",
+                        "commit", "succeed", "retire"]
+    return handpicked_verbs
 
 
 def get_occupations(path) -> list:
@@ -110,14 +125,14 @@ def get_unique_sentences(path_sentences, occupations_list):
 
 
 def get_plotting_word_list(words: list, word_emb) -> [list]:
-    male_words = word_lists.get_bolukbasi_male_list()
-    female_words = word_lists.get_bolukbasi_female_list()
+    male_words = get_bolukbasi_male_list()
+    female_words = get_bolukbasi_female_list()
 
-    male_vectors = np.array([pkl_dict.get(male_word) for male_word in male_words])
-    female_vectors = np.array([pkl_dict.get(female_word) for female_word in female_words])
+    male_vectors = np.array([word_emb.get(male_word) for male_word in male_words])
+    female_vectors = np.array([word_emb.get(female_word) for female_word in female_words])
 
-    he_vector = np.array(pkl_dict.get("he"))
-    she_vector = np.array(pkl_dict.get("she"))
+    he_vector = np.array(word_emb.get("he"))
+    she_vector = np.array(word_emb.get("she"))
 
     words_to_plot = []
 

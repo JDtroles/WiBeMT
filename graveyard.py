@@ -245,3 +245,18 @@ results = []
          word_emb=pkl_dict,
          cosine=True)
 '''
+
+# Load fastText models
+# Code from: https://fasttext.cc/docs/en/english-vectors.html
+# with modifications from Jonas-Dario Troles
+def load_fasttext_vectors() -> dict:
+    print("Select fastText.vec file to load:")
+    file_path = get_file_path_for_loading("Choose a word embedding file in .txt format")
+    print("You selected the file: ", str(file_path))
+    fin = io.open(file_path, 'r', encoding='utf-8', newline='\n', errors='ignore')
+    n, d = map(int, fin.readline().split())
+    embeddings_dict = {}
+    for line in tqdm(fin.readlines(), desc="Creating dictionary: "):
+        tokens = line.rstrip().split(' ')
+        embeddings_dict[tokens[0]] = map(float, tokens[1:])
+    return embeddings_dict

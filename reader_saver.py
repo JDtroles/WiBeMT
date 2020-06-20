@@ -92,22 +92,6 @@ def load_txt_to_dict() -> dict:
             embeddings_dict[word] = vector
     return embeddings_dict
 
-# TODO: fix this function / configure GloVe function to work with fastText
-# Load fastText models
-# Code from: https://fasttext.cc/docs/en/english-vectors.html
-# with modifications from Jonas-Dario Troles
-def load_fasttext_vectors() -> dict:
-    print("Select fastText.vec file to load:")
-    file_path = get_file_path_for_loading("Choose a word embedding file in .txt format")
-    print("You selected the file: ", str(file_path))
-    fin = io.open(file_path, 'r', encoding='utf-8', newline='\n', errors='ignore')
-    n, d = map(int, fin.readline().split())
-    embeddings_dict = {}
-    for line in tqdm(fin.readlines(), desc="Creating dictionary: "):
-        tokens = line.rstrip().split(' ')
-        embeddings_dict[tokens[0]] = map(float, tokens[1:])
-    return embeddings_dict
-
 
 def load_vocab_to_list_at_2nd_pos() -> list:
     file_path = get_file_path_for_loading("Choose a word list file in .txt format")
@@ -197,3 +181,54 @@ def write_nested_dict_to_file(dict_to_save: dict, sorted_keys: list):
         file_saver.write("\n")
     file_saver.close()
     print("You saved the file")
+
+
+def save_ranked_words_dict_to_file(word_score):
+    for key in word_score:
+        print(key, ":")
+        for sub_key in word_score[key]:
+            print(sub_key, "->", word_score[key][sub_key])
+    reader_saver.write_nested_dict_to_file(word_score, sorted(word_score, key=lambda x: word_score[x]["sum_all"]))
+
+
+def select_word_list():
+    word_list = None
+    # load the word list you want to rank
+    print("Now choose the origin of the word list:")
+    print("patternbasedwriting.com = 1")
+    print("Oxford Dictionary = 2")
+    print("Glove = 3")
+    print("fastText = 4")
+    while True:
+        try:
+            origin_int = int(input("Enter the corresponding number:"))
+            if origin_int < 1 or origin_int > 4:
+                raise ValueError
+            elif origin_int == 1:
+                origin = "patternbasedwriting.com"
+                print("You chose \"patternbasedwriting.com\" as origin")
+                print("Now choose the corresponding wordlist in .txt format")
+                word_list = reader_saver.load_vocab_to_list_at_2nd_pos()
+                break
+            elif origin_int == 2:
+                origin = "Oxford Dictionary"
+                print("You chose \"Oxford Dictionary\" as origin")
+                # print("Now choose the corresponding wordlist in .txt format")
+                print("No Oxford list available yet")
+                break
+            elif origin_int == 3:
+                origin = "Glove"
+                print("You chose \"Glove\" as origin")
+                print("Now choose the corresponding wordlist in .txt format")
+                word_list = reader_saver.load_nested_vocab_to_list()
+                break
+            elif origin_int == 4:
+                origin = "fastText"
+                print("You chose \"fastText\" as origin")
+                print("Now choose the corresponding wordlist in .txt format")
+                word_list = reader_saver.load_nested_vocab_to_list()
+                break
+
+        except ValueError:
+            print("Please enter an int between 1 - 4")
+    return origin, word_list
