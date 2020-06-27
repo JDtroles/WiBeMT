@@ -79,7 +79,17 @@ def load_pkl_to_dict() -> dict:
         print('cannot load: ', file_path)
 
 
+# TODO: learn how to docstring
 def load_txt_to_dict() -> dict:
+    """ loads an embedding.txt and returns it as a dict
+
+    1. select a file
+
+    2. read line
+
+    3. split line by " "
+
+    """
     print("Load GloVe .txt file to load")
     file_path = get_file_path_for_loading("Choose a word embedding file in .txt format")
     print("You selected the file: ", str(file_path))

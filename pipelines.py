@@ -142,10 +142,53 @@ def pipeline_1(embedding_1: str, embedding_2: str, word_list: list = None, origi
 # 2 #
 #####
 # pipeline_2
-# IN: verb_sentence_skeletons & gender_verbs & occupations
+# IN: verb_sentence_skeletons & occupations
 # TASK 1: create full sentences from input data
 # TASK 2: write sentences structured into list
 # OUT: write sentence list to file
 def pipeline_2():
+    # TODO: load verb_sentence_skeleton
+    # TODO: create sentence loading functions
+    # verb_sentences: list = reader_saver.
 
+    # TODO: load occupations
+    verb_sentences: dict = reader_saver.load_txt_to_dict()
+    # TODO: create ID: letter for unique sentence_skeleton, unique number, V, word?, occupation?
+    sentence_id: str = "platzhalter_ID"
+    # TODO: create sentence
+    sentence: str = "platzhalter_Satz"
+    verb: str = "platzhalter_Verb"
+    occupation: str = "platzhalter_occupation"
+    verb_sentences[sentence_id]:dict = {}
+    verb_sentences[sentence_id]["sentence"]: str = sentence
+    verb_sentences[sentence_id]["verb"]: str = verb
+    verb_sentences[sentence_id]["occupation"]: str = occupation
+
+
+    return
+
+
+#####
+# 3 #
+#####
+# pipeline_3
+# IN:
+# TASK 1:
+# TASK 2:
+# OUT:
+def pipeline_3():
+    # TODO: Implement
+    return
+
+
+#####
+# 4 #
+#####
+# pipeline_4
+# IN:
+# TASK 1:
+# TASK 2:
+# OUT:
+def pipeline_4():
+    # TODO: Implement
     return
