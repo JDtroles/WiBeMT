@@ -9,6 +9,9 @@ from evaluator import get_bias_score_matrix
 ################
 # ...that implement one step of workflow from loading data to saving data
 
+#####
+# 0 #
+#####
 # pipeline_0 loads word_embedding files into dictionaries and saves those as a .pkl file
 from misc import get_gender_ranking_vectors
 from reader_saver import save_ranked_words_dict_to_file, select_word_list
@@ -43,7 +46,9 @@ def pipeline_0() -> bool:
     reader_saver.save_dict_to_pkl(word_embedding)
     return True
 
-
+#####
+# 1 #
+#####
 # pipeline_1 ranks words and saves them as a dict with the following format:
 # word -> origin -> emb_1_he_she -> emb_1_boluk -> emb_2_he_she -> emb_2_boluk
 def pipeline_1(embedding_1: str, embedding_2: str, word_list: list = None, origin_of_word_list: str = None) -> bool:
@@ -91,8 +96,8 @@ def pipeline_1(embedding_1: str, embedding_2: str, word_list: list = None, origi
 
     # Load word embedding 2
     print("Choose the", embedding_2, "word embedding .PKL you want to load")
-    pkl_dict = None
-    gc.collect()
+    # pkl_dict = None
+    # gc.collect()
     pkl_dict = reader_saver.load_pkl_to_dict()
 
     # get new vectors from new word embedding
@@ -131,3 +136,16 @@ def pipeline_1(embedding_1: str, embedding_2: str, word_list: list = None, origi
     save_ranked_words_dict_to_file(word_score)
 
     return True
+
+
+#####
+# 2 #
+#####
+# pipeline_2
+# IN: verb_sentence_skeletons & gender_verbs & occupations
+# TASK 1: create full sentences from input data
+# TASK 2: write sentences structured into list
+# OUT: write sentence list to file
+def pipeline_2():
+
+    return

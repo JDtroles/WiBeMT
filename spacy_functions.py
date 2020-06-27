@@ -2,6 +2,7 @@ import spacy
 import en_core_web_lg
 from tqdm import tqdm
 
+
 class NLPWorker():
     def __init__(self):
         self.nlp = en_core_web_lg.load()
@@ -17,7 +18,6 @@ class NLPWorker():
                 elif token.pos == 99:
                     verbs.append(key)
         return adjectives, verbs
-
 
 
 def get_adj_verbs(word_emb: dict) -> [list, list]:

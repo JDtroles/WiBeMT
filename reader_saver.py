@@ -188,7 +188,7 @@ def save_ranked_words_dict_to_file(word_score):
         print(key, ":")
         for sub_key in word_score[key]:
             print(sub_key, "->", word_score[key][sub_key])
-    reader_saver.write_nested_dict_to_file(word_score, sorted(word_score, key=lambda x: word_score[x]["sum_all"]))
+    write_nested_dict_to_file(word_score, sorted(word_score, key=lambda x: word_score[x]["sum_all"]))
 
 
 def select_word_list():
@@ -197,7 +197,7 @@ def select_word_list():
     print("Now choose the origin of the word list:")
     print("patternbasedwriting.com = 1")
     print("Oxford Dictionary = 2")
-    print("Glove = 3")
+    print("Garg = 3")
     print("fastText = 4")
     while True:
         try:
@@ -208,7 +208,7 @@ def select_word_list():
                 origin = "patternbasedwriting.com"
                 print("You chose \"patternbasedwriting.com\" as origin")
                 print("Now choose the corresponding wordlist in .txt format")
-                word_list = reader_saver.load_vocab_to_list_at_2nd_pos()
+                word_list = load_vocab_to_list_at_2nd_pos()
                 break
             elif origin_int == 2:
                 origin = "Oxford Dictionary"
@@ -217,16 +217,16 @@ def select_word_list():
                 print("No Oxford list available yet")
                 break
             elif origin_int == 3:
-                origin = "Glove"
-                print("You chose \"Glove\" as origin")
+                origin = "Garg"
+                print("You chose \"Garg\" as origin")
                 print("Now choose the corresponding wordlist in .txt format")
-                word_list = reader_saver.load_nested_vocab_to_list()
+                word_list = load_nested_vocab_to_list()
                 break
             elif origin_int == 4:
                 origin = "fastText"
                 print("You chose \"fastText\" as origin")
                 print("Now choose the corresponding wordlist in .txt format")
-                word_list = reader_saver.load_nested_vocab_to_list()
+                word_list = load_nested_vocab_to_list()
                 break
 
         except ValueError:
