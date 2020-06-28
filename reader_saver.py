@@ -15,6 +15,12 @@ INITIAL_DIR = "/home/jonas/Schreibtisch/GitRepos"
 
 
 def get_file_saver_instance(file_type: str = None):
+    """
+    opens a asksaveasfile dialog from tkinter
+
+    :param file_type: str ".txt" if ".txt" shall be appended to filename
+    :return: file-writer-instance
+    """
     root = tk.Tk()
     root.withdraw()
 
@@ -28,6 +34,13 @@ def get_file_saver_instance(file_type: str = None):
 
 
 def get_file_path_for_saving(file_extension: str = None) -> str:
+    """
+    opens a asksaveasfilename dialog from tkinter
+
+    :param file_extension: str of file-extension which shall be appended to filename
+    :rtype str
+    :return: str of Path object
+    """
     root = tk.Tk()
     root.withdraw()
 
@@ -41,6 +54,13 @@ def get_file_path_for_saving(file_extension: str = None) -> str:
 
 
 def get_file_path_for_loading(window_title) -> str:
+    """
+    opens a askopenfilename dialog from tkinter
+
+    :param window_title: specifies the title of the askopenfilename-window
+    :rtype str
+    :return: str of Path object
+    """
     root = tk.Tk()
     root.withdraw()
 
@@ -51,6 +71,12 @@ def get_file_path_for_loading(window_title) -> str:
 
 
 def save_dict_to_pkl(dict_to_save) -> None:
+    """
+    saves a dict to a .pkl file
+
+    :param dict_to_save: the dict one wants to save as a .pkl file
+    :return: None
+    """
     file_path = get_file_path_for_saving(".pickle")
 
     # Store data
@@ -68,6 +94,12 @@ def save_dict_to_pkl(dict_to_save) -> None:
 
 
 def load_pkl_to_dict() -> dict:
+    """
+    loads a word_embedding in .pkl format which one selects at runtime
+
+    :rtype dict
+    :return: word_embedding: key = word, value = vector
+    """
     file_path = get_file_path_for_loading("Choose a word embedding file in .pickle format")
     print("You selected the file: ", str(file_path))
     # Load data
@@ -79,16 +111,12 @@ def load_pkl_to_dict() -> dict:
         print('cannot load: ', file_path)
 
 
-# TODO: learn how to docstring
 def load_txt_to_dict() -> dict:
-    """ loads an embedding.txt and returns it as a dict
+    """
+    loads a .txt or .vec word_embedding and writes it into a dict structure
 
-    1. select a file
-
-    2. read line
-
-    3. split line by " "
-
+    :rtype dict
+    :return: word_embedding: key = word, value = vector
     """
     print("Load GloVe .txt file to load")
     file_path = get_file_path_for_loading("Choose a word embedding file in .txt format")
@@ -104,6 +132,14 @@ def load_txt_to_dict() -> dict:
 
 
 def load_vocab_to_list_at_2nd_pos() -> list:
+    """
+    loads a list of words from a file;
+    line-separator: " ";
+    2nd position in line is selected as list element
+
+    :rtype list
+    :return: list of words
+    """
     file_path = get_file_path_for_loading("Choose a word list file in .txt format")
 
     vocab_list = []
@@ -116,6 +152,14 @@ def load_vocab_to_list_at_2nd_pos() -> list:
 
 
 def load_vocab_to_list_at_1st_pos() -> list:
+    """
+    loads a list of words from a file;
+    line-separator: "\t";
+    1st position in line is selected as list element
+
+    :rtype list
+    :return: list of words
+    """
     file_path = get_file_path_for_loading("Choose a word list file in .txt format")
 
     vocab_list = []
@@ -129,6 +173,12 @@ def load_vocab_to_list_at_1st_pos() -> list:
 
 
 def load_vocab_to_list() -> list:
+    """
+    loads a list of words from a file where each line only contains the word
+
+    :rtype list
+    :return: list of words
+    """
     file_path = get_file_path_for_loading("Choose a word list file in .txt format")
 
     vocab_list = []
@@ -139,6 +189,14 @@ def load_vocab_to_list() -> list:
 
 
 def load_nested_vocab_to_list() -> list:
+    """
+    loads a list of words from a file where each line contains a list of words
+    line-separator: ", ";
+
+
+    :rtype list
+    :return: list of words
+    """
     file_path = get_file_path_for_loading("Choose a nested word list file in .txt format")
 
     vocab_list = []
@@ -154,6 +212,12 @@ def load_nested_vocab_to_list() -> list:
 
 
 def write_list_to_file(list_to_save):
+    """
+    writes a list to a file specified at runtime
+
+    :param list_to_save:
+    :return: None
+    """
     file_saver = get_file_saver_instance(".txt")
     if file_saver is None:
         print("Not Saved")
@@ -165,6 +229,13 @@ def write_list_to_file(list_to_save):
 
 
 def write_nested_list_to_file(list_to_save):
+    """
+    writes a nested list to a file specified at runtime
+    each line contains the values of the sublist separated by "\t"
+
+    :param list_to_save:
+    :return: None
+    """
     file_saver = get_file_saver_instance(".txt")
     if file_saver is None:
         print("Not Saved")
@@ -179,6 +250,13 @@ def write_nested_list_to_file(list_to_save):
 
 
 def write_nested_dict_to_file(dict_to_save: dict, sorted_keys: list):
+    """
+    takes a nested dict and saves it to a file (specified at runtime)
+
+    :param dict_to_save: the nested dict one wants to be written to file
+    :param sorted_keys: the sorted list of keys to define the list-order
+    :return: None
+    """
     file_saver = get_file_saver_instance(".txt")
     if file_saver is None:
         print("Not Saved")
@@ -194,6 +272,12 @@ def write_nested_dict_to_file(dict_to_save: dict, sorted_keys: list):
 
 
 def save_ranked_words_dict_to_file(word_score):
+    """
+    writes the given dict to a file;
+    sorted by: "sum_all"
+
+    :param word_score: dict of ranked words
+    """
     for key in word_score:
         print(key, ":")
         for sub_key in word_score[key]:
@@ -201,7 +285,12 @@ def save_ranked_words_dict_to_file(word_score):
     write_nested_dict_to_file(word_score, sorted(word_score, key=lambda x: word_score[x]["sum_all"]))
 
 
-def select_word_list():
+def select_word_list() -> Tuple[str, list]:
+    """
+    user selects a word-list file and its origin
+
+    :return: origin as str; list of words
+    """
     word_list = None
     # load the word list you want to rank
     print("Now choose the origin of the word list:")

@@ -17,7 +17,12 @@ from misc import get_gender_ranking_vectors
 from reader_saver import save_ranked_words_dict_to_file, select_word_list
 
 
-def pipeline_0() -> bool:
+def pipeline_0():
+    """
+    pipeline_0 loads a a word_embedding from .txt / .vec and saves it as .pkl
+
+    :return:
+    """
     print("Ckhoose the word embedding type you want to load:")
     print("GloVe = 1")
     print("fastText = 2")
@@ -36,7 +41,7 @@ def pipeline_0() -> bool:
                 # load fastText
                 print("You chose to load a fastText word embedding")
                 print("Now choose the corresponding fastText file in .vec format")
-                word_embedding = reader_saver.load_fasttext_vectors()
+                word_embedding = reader_saver.load_txt_to_dict()
 
                 break
         except ValueError:
@@ -44,14 +49,24 @@ def pipeline_0() -> bool:
 
     # save word_embedding to .pkl file
     reader_saver.save_dict_to_pkl(word_embedding)
-    return True
+    return
+
 
 #####
 # 1 #
 #####
 # pipeline_1 ranks words and saves them as a dict with the following format:
 # word -> origin -> emb_1_he_she -> emb_1_boluk -> emb_2_he_she -> emb_2_boluk
-def pipeline_1(embedding_1: str, embedding_2: str, word_list: list = None, origin_of_word_list: str = None) -> bool:
+def pipeline_1(embedding_1: str, embedding_2: str, word_list: list = None, origin_of_word_list: str = None):
+    """
+    pipeline_1 ranks a word list with two embeddings and writes the results to a runtime specified file
+
+    :param embedding_1: str of Embedding 1 one wants to load
+    :param embedding_2: str of Embedding 2 one wants to load
+    :param word_list: list of words to be ranked
+    :param origin_of_word_list: str where the list of words originates from
+    :return:
+    """
     # initialize dict
     word_score = {}
     embedding_1_he_she: str = embedding_1 + "_he_she"
@@ -135,7 +150,7 @@ def pipeline_1(embedding_1: str, embedding_2: str, word_list: list = None, origi
     # Save the dict to a file
     save_ranked_words_dict_to_file(word_score)
 
-    return True
+    return
 
 
 #####
@@ -159,7 +174,7 @@ def pipeline_2():
     sentence: str = "platzhalter_Satz"
     verb: str = "platzhalter_Verb"
     occupation: str = "platzhalter_occupation"
-    verb_sentences[sentence_id]:dict = {}
+    verb_sentences[sentence_id]: dict = {}
     verb_sentences[sentence_id]["sentence"]: str = sentence
     verb_sentences[sentence_id]["verb"]: str = verb
     verb_sentences[sentence_id]["occupation"]: str = occupation
