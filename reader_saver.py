@@ -9,9 +9,9 @@ import numpy as np
 import re
 
 
-INITIAL_DIR_WORDS = "/home/jonas/Nextcloud/#CitH/Masterarbeit/Words"
-INITIAL_DIR_EMBEDDINGS = "/home/jonas/Schreibtisch/GitRepos/PretrainedWordVectors"
-INITIAL_DIR = "/home/jonas/Schreibtisch/GitRepos"
+INITIAL_DIR_WORDS = "/home/Jonas/Nextcloud/#CitH/Masterarbeit"
+INITIAL_DIR_EMBEDDINGS = "/home/Jonas/Desktop"
+INITIAL_DIR = "/home/Jonas/Desktop"
 
 
 def get_file_saver_instance(file_type: str = None):
@@ -38,7 +38,6 @@ def get_file_path_for_saving(file_extension: str = None) -> str:
     opens a asksaveasfilename dialog from tkinter
 
     :param file_extension: str of file-extension which shall be appended to filename
-    :rtype str
     :return: str of Path object
     """
     root = tk.Tk()
@@ -58,7 +57,6 @@ def get_file_path_for_loading(window_title) -> str:
     opens a askopenfilename dialog from tkinter
 
     :param window_title: specifies the title of the askopenfilename-window
-    :rtype str
     :return: str of Path object
     """
     root = tk.Tk()
@@ -115,7 +113,6 @@ def load_txt_to_dict() -> dict:
     """
     loads a .txt or .vec word_embedding and writes it into a dict structure
 
-    :rtype dict
     :return: word_embedding: key = word, value = vector
     """
     print("Load GloVe .txt file to load")
@@ -131,13 +128,12 @@ def load_txt_to_dict() -> dict:
     return embeddings_dict
 
 
-def load_vocab_to_list_at_2nd_pos() -> list:
+def load_vocab_to_list_at_2nd_pos(separator: str = " ") -> list:
     """
     loads a list of words from a file;
-    line-separator: " ";
+    default line-separator: " ";
     2nd position in line is selected as list element
 
-    :rtype list
     :return: list of words
     """
     file_path = get_file_path_for_loading("Choose a word list file in .txt format")
@@ -145,19 +141,44 @@ def load_vocab_to_list_at_2nd_pos() -> list:
     vocab_list = []
     with open(file_path, 'r', encoding="utf-8") as f:
         for line in tqdm(f.readlines(), desc="Creating vocab list: "):
-            values = line.split(" ")
+            values = line.split(separator)
             word = values[1]
             vocab_list.append(word.rstrip())
     return vocab_list
 
 
-def load_vocab_to_list_at_1st_pos() -> list:
+def load_verb_sentence_to_list_at_2nd_pos(separator: str = "\t") -> list:
     """
-    loads a list of words from a file;
-    line-separator: "\t";
+    loads a list of sentences from a file;
+    default line-separator: "\t";
+    2nd position in line is selected as list element
+
+    :return: nested list of [[sentence_1, verb_1]...[sentence_n, verb_n]]
+    """
+    file_path = get_file_path_for_loading("Choose a word list file in .txt format")
+
+    verb_sentences = []
+    with open(file_path, 'r', encoding="utf-8") as f:
+        for line in tqdm(f.readlines(), desc="Creating vocab list: "):
+            for elem in line:
+                values = line.split(separator)
+                sentence = values[1]
+                verb = values[2]
+                gender = values[3]
+                number = values[0]
+                verb_sentences.append([sentence, verb, gender, number])
+    return verb_sentences
+
+
+# TODO: add gender to occupatuions_list and unique number
+def load_vocab_to_list_at_1st_pos() -> list:
+    r"""raw
+    loads a list of words from a file
+
+    line-separator: "\\\t"
+
     1st position in line is selected as list element
 
-    :rtype list
     :return: list of words
     """
     file_path = get_file_path_for_loading("Choose a word list file in .txt format")
@@ -285,7 +306,7 @@ def save_ranked_words_dict_to_file(word_score):
     write_nested_dict_to_file(word_score, sorted(word_score, key=lambda x: word_score[x]["sum_all"]))
 
 
-def select_word_list() -> Tuple[str, list]:
+def select_word_list() -> [str, list]:
     """
     user selects a word-list file and its origin
 
@@ -297,7 +318,7 @@ def select_word_list() -> Tuple[str, list]:
     print("patternbasedwriting.com = 1")
     print("Oxford Dictionary = 2")
     print("Garg = 3")
-    print("fastText = 4")
+    print("misc = 4")
     while True:
         try:
             origin_int = int(input("Enter the corresponding number:"))
@@ -322,10 +343,10 @@ def select_word_list() -> Tuple[str, list]:
                 word_list = load_nested_vocab_to_list()
                 break
             elif origin_int == 4:
-                origin = "fastText"
+                origin = "misc"
                 print("You chose \"fastText\" as origin")
                 print("Now choose the corresponding wordlist in .txt format")
-                word_list = load_nested_vocab_to_list()
+                word_list = load_vocab_to_list_at_1st_pos()
                 break
 
         except ValueError:
