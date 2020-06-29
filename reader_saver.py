@@ -160,13 +160,15 @@ def load_verb_sentence_to_list_at_2nd_pos(separator: str = "\t") -> list:
     verb_sentences = []
     with open(file_path, 'r', encoding="utf-8") as f:
         for line in tqdm(f.readlines(), desc="Creating vocab list: "):
-            for elem in line:
-                values = line.split(separator)
-                sentence = values[1]
-                verb = values[2]
-                gender = values[3]
-                number = values[0]
-                verb_sentences.append([sentence, verb, gender, number])
+            if len(line.strip()) > 0:
+                line = line.strip()
+                for elem in line:
+                    values = line.split(separator)
+                    sentence = values[1]
+                    verb = values[2]
+                    gender = values[3]
+                    number = values[0]
+                    verb_sentences.append([sentence, verb, gender, number])
     return verb_sentences
 
 
@@ -186,7 +188,7 @@ def load_vocab_to_list_at_1st_pos() -> list:
     vocab_list = []
     with open(file_path, 'r', encoding="utf-8") as f:
         for line in tqdm(f.readlines(), desc="Creating vocab list: "):
-            if line:
+            if len(line.strip()) > 0:
                 values = line.split("\t")
                 word = values[0]
                 vocab_list.append(word.rstrip())
@@ -270,10 +272,11 @@ def write_nested_list_to_file(list_to_save):
     print("File saved")
 
 
-def write_nested_dict_to_file(dict_to_save: dict, sorted_keys: list):
+def write_nested_dict_to_file(dict_to_save: dict, sorted_keys: list = None, write_subkeys: bool = True):
     """
     takes a nested dict and saves it to a file (specified at runtime)
 
+    :param write_subkeys: defines if the subkeys are written or only the corresponding value
     :param dict_to_save: the nested dict one wants to be written to file
     :param sorted_keys: the sorted list of keys to define the list-order
     :return: None
@@ -282,12 +285,26 @@ def write_nested_dict_to_file(dict_to_save: dict, sorted_keys: list):
     if file_saver is None:
         print("Not Saved")
         return
-    for key in sorted_keys:
-        file_saver.write(str(key))
-        for sub_key in dict_to_save[key]:
-            file_saver.write("\t")
-            file_saver.write(str(sub_key) + ": " + str(dict_to_save[key][sub_key]))
-        file_saver.write("\n")
+    if sorted_keys is not None:
+        for key in sorted_keys:
+            file_saver.write(str(key))
+            for sub_key in dict_to_save[key]:
+                file_saver.write("\t")
+                if write_subkeys:
+                    file_saver.write(str(sub_key) + ": " + str(dict_to_save[key][sub_key]))
+                else:
+                    file_saver.write(str(dict_to_save[key][sub_key]))
+            file_saver.write("\n")
+    else:
+        for key in sorted(dict_to_save):
+            file_saver.write(str(key))
+            for sub_key in dict_to_save[key]:
+                file_saver.write("\t")
+                if write_subkeys:
+                    file_saver.write(str(sub_key) + ": " + str(dict_to_save[key][sub_key]))
+                else:
+                    file_saver.write(str(dict_to_save[key][sub_key]))
+            file_saver.write("\n")
     file_saver.close()
     print("You saved the file")
 

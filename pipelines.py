@@ -91,7 +91,7 @@ def pipeline_1(embedding_1: str, embedding_2: str, word_list: list = None, origi
     for elem in ranked_words:
         word_score[elem[0]] = {}
         word_score[elem[0]]["origin"] = origin
-        word_score[elem[0]][embedding_1_he_she] = elem[1]
+        word_score[elem[0]][embedding_1_he_she] = round(elem[1], 5)
         if elem[1] < 0:
             word_score[elem[0]][embedding_1_bolukbasi] = -99
             word_score[elem[0]][embedding_2_he_she] = -99
@@ -105,7 +105,7 @@ def pipeline_1(embedding_1: str, embedding_2: str, word_list: list = None, origi
     print("Ranking with bolukbasi and", embedding_1)
     ranked_words = get_bias_score_matrix(word_list, male_vectors_boluk, female_vectors_boluk, pkl_dict)
     for elem in ranked_words:
-        word_score[elem[0]][embedding_1_bolukbasi] = elem[1]
+        word_score[elem[0]][embedding_1_bolukbasi] = round(elem[1], 5)
 
     # Load word embedding 2
     print("Choose the", embedding_2, "word embedding .PKL you want to load")
@@ -121,7 +121,7 @@ def pipeline_1(embedding_1: str, embedding_2: str, word_list: list = None, origi
     ranked_words = get_bias_score_matrix(word_list, male_vectors, female_vectors, pkl_dict)
     for elem in ranked_words:
         if elem[0] in word_score:
-            word_score[elem[0]][embedding_2_he_she] = elem[1]
+            word_score[elem[0]][embedding_2_he_she] = round(elem[1], 5)
         else:
             word_score[elem[0]] = {}
             word_score[elem[0]]["origin"] = origin
@@ -131,17 +131,18 @@ def pipeline_1(embedding_1: str, embedding_2: str, word_list: list = None, origi
             else:
                 word_score[elem[0]][embedding_1_he_she] = 99
                 word_score[elem[0]][embedding_1_bolukbasi] = 99
-            word_score[elem[0]][embedding_2_he_she] = elem[1]
+            word_score[elem[0]][embedding_2_he_she] = round(elem[1], 5)
 
     # ranking with bolukbasi and fastText
     print("Ranking with bolukbasi and ", embedding_2)
     ranked_words = get_bias_score_matrix(word_list, male_vectors_boluk, female_vectors_boluk, pkl_dict)
     for elem in ranked_words:
-        word_score[elem[0]][embedding_2_bolukbasi] = elem[1]
+        word_score[elem[0]][embedding_2_bolukbasi] = round(elem[1], 5)
 
     for key in word_score:
-        word_score[key]["sum_all"] = word_score[key][embedding_1_he_she] + word_score[key][embedding_1_bolukbasi] + \
-                                     word_score[key][embedding_2_he_she] + word_score[key][embedding_2_bolukbasi]
+        word_score[key]["sum_all"] = round(
+            (word_score[key][embedding_1_he_she] + word_score[key][embedding_1_bolukbasi] +
+             word_score[key][embedding_2_he_she] + word_score[key][embedding_2_bolukbasi]), 5)
 
     # Save the dict to a file
     save_ranked_words_dict_to_file(word_score)
@@ -168,14 +169,15 @@ def pipeline_2():
     :return: None
     """
     print("Choose the verb sentences file you want to use.")
+    print("selects tab separated 2nd position")
     verb_sentences: list = reader_saver.load_verb_sentence_to_list_at_2nd_pos()
+    print([sentence for sentence in verb_sentences[0:4]])
     print("Choose the list of occupations you want to load")
+    print("selects tab separated 1st position")
     occupations: list = reader_saver.load_vocab_to_list_at_1st_pos()
-    print("Choose list of adjectives you want to load.")
-    adjectives: list = reader_saver.load_vocab_to_list_at_1st_pos()
+    print([occupation for occupation in occupations[0:4]])
     # ID: VF01OccF01AdjF01 ->   V for verb, F for gender of verb (F, M), 01 is an incremented int,
     #                           Occ for occupation, F for gender of occupation (F, N, M), 01 is an incremented int,
-    #                           Adj for adjective, F for gender of adjective (F, M), 01 is an incremented int
     finished_sentences = {}
     for sentence_info in verb_sentences:
         sentence: str = sentence_info[0]
@@ -183,31 +185,23 @@ def pipeline_2():
         sentence_gender = sentence_info[2]
         sentence_number = sentence_info[3]
         id_base: str = "V" + sentence_gender + str(sentence_number).zfill(2)
-        for occupation_info in occupations:
-            occupation = occupation_info[0]
-            occupation_gender = occupation_info[1]
-            occupation_number = occupation_info[2]
-            id_base_2: str = id_base + "Occ" + occupation_gender + str(occupation_number)
+        for idx_occ, occupation_info in enumerate(occupations):
+            # TODO: check if function works with correct occupations format
+            if type(occupation_info) is str:
+                occupation = occupation_info
+                occupation_gender = "OG"
+                occupation_number = idx_occ
+            else:
+                occupation = occupation_info[0]
+                occupation_gender = occupation_info[1]
+                occupation_number = occupation_info[2]
+            id_full: str = id_base + "Occ" + occupation_gender + str(occupation_number).zfill(2)
             sentence_plus_occupation = sentence.replace("XY", occupation)
-            no_adj_id = id_base_2 + "AdjNone"
-            finished_sentences[no_adj_id]: dict = {}
-            finished_sentences[no_adj_id]["sentence"]: str = sentence_plus_occupation
-            finished_sentences[no_adj_id]["verb"]: str = sentence_verb
-            finished_sentences[no_adj_id]["occupation"]: str = occupation
-            finished_sentences[no_adj_id]["adjective"]: str = None
-            for adjectives_info in adjectives:
-                adjective = adjectives_info[0]
-                adjective_gender = adjectives_info[1]
-                adjective_number = adjectives_info[2]
-                full_id = no_adj_id + "Adj" + adjective_gender + str(adjective_number)
-                replacement = adjective + " " + occupation
-                sentence_plus_adj = sentence.replace(occupation, replacement)
-                finished_sentences[full_id]: dict = {}
-                finished_sentences[full_id]["sentence"]: str = sentence_plus_adj
-                finished_sentences[full_id]["verb"]: str = sentence_verb
-                finished_sentences[full_id]["occupation"]: str = occupation
-                finished_sentences[full_id]["adjective"]: str = adjective
-    # TODO: write dict to file
+            finished_sentences[id_full]: dict = {}
+            finished_sentences[id_full]["sentence"]: str = sentence_plus_occupation
+            finished_sentences[id_full]["verb"]: str = sentence_verb
+            finished_sentences[id_full]["occupation"]: str = occupation
+    reader_saver.write_nested_dict_to_file(finished_sentences, write_subkeys=False)
 
     return
 
