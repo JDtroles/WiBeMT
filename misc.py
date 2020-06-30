@@ -50,3 +50,28 @@ def get_gender_ranking_vectors(pkl_dict):
     male_vectors_boluk = np.array([pkl_dict.get(male_word) for male_word in male_words_boluk])
     female_vectors_boluk = np.array([pkl_dict.get(female_word) for female_word in female_words_boluk])
     return female_vectors, female_vectors_boluk, male_vectors, male_vectors_boluk
+
+
+def normalize_ranked_words(ranked_words):
+    all_values = [value[1] for value in ranked_words]
+    min_all_values = min(all_values)
+    max_all_values = max(all_values)
+    lower_bound: int = -1
+    upper_bound: int = 1
+    for value in ranked_words:
+        value[1] = lower_bound + (((value[1] - min_all_values) * (upper_bound - lower_bound)) /
+                                  (max_all_values - min_all_values))
+    return ranked_words
+
+
+def normalize_sum_all(results_dict):
+    all_values = [results_dict[key]["sum_all"] for key in results_dict]
+    min_all_values = min(all_values)
+    max_all_values = max(all_values)
+    lower_bound: int = -1
+    upper_bound: int = 1
+    for key in results_dict:
+        results_dict[key]["sum_all"] = lower_bound + (
+                    ((results_dict[key]["sum_all"] - min_all_values) * (upper_bound - lower_bound)) /
+                    (max_all_values - min_all_values))
+    return results_dict

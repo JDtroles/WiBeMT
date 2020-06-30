@@ -12,7 +12,7 @@ from evaluator import get_bias_score_matrix
 # 0 #
 #####
 # pipeline_0 loads word_embedding files into dictionaries and saves those as a .pkl file
-from misc import get_gender_ranking_vectors
+from misc import get_gender_ranking_vectors, normalize_ranked_words, normalize_sum_all
 from reader_saver import save_ranked_words_dict_to_file, select_word_list
 
 
@@ -56,28 +56,17 @@ def pipeline_0():
 #####
 # pipeline_1 ranks words and saves them as a dict with the following format:
 # word -> origin -> emb_1_he_she -> emb_1_boluk -> emb_2_he_she -> emb_2_boluk
-def pipeline_1(embedding_1: str, embedding_2: str, word_list: list = None, origin_of_word_list: str = None):
+def pipeline_1(word_embeddings_strs: list, word_list: list = None, origin_of_word_list: str = None):
     """
     pipeline_1 ranks a word list with two embeddings and writes the results to a runtime specified file
 
-    :param embedding_1: str of Embedding 1 one wants to load
-    :param embedding_2: str of Embedding 2 one wants to load
+    :param word_embeddings_strs: list of the 4 word_embedding-names
     :param word_list: list of words to be ranked
     :param origin_of_word_list: str where the list of words originates from
     :return: None
     """
     # initialize dict
     word_score = {}
-    embedding_1_he_she: str = embedding_1 + "_he_she"
-    embedding_1_bolukbasi: str = embedding_1 + "_bolukbasi"
-    embedding_2_he_she: str = embedding_2 + "_he_she"
-    embedding_2_bolukbasi: str = embedding_2 + "_bolukbasi"
-
-    # Load word embedding 1
-    print("Choose the", embedding_1, "word embedding .PKL you want to load")
-    pkl_dict = reader_saver.load_pkl_to_dict()
-
-    female_vectors, female_vectors_boluk, male_vectors, male_vectors_boluk = get_gender_ranking_vectors(pkl_dict)
 
     # Select a word_list if None is given to pipeline_1
     if word_list is None:
@@ -85,68 +74,57 @@ def pipeline_1(embedding_1: str, embedding_2: str, word_list: list = None, origi
     else:
         origin = origin_of_word_list
 
-    # ranking with he-she and Glove
-    print("Ranking with he-she and", embedding_1)
-    ranked_words = get_bias_score_matrix(word_list, male_vectors, female_vectors, pkl_dict)
-    for elem in ranked_words:
-        word_score[elem[0]] = {}
-        word_score[elem[0]]["origin"] = origin
-        word_score[elem[0]][embedding_1_he_she] = round(elem[1], 5)
-        if elem[1] < 0:
-            word_score[elem[0]][embedding_1_bolukbasi] = -99
-            word_score[elem[0]][embedding_2_he_she] = -99
-            word_score[elem[0]][embedding_2_bolukbasi] = -99
-        else:
-            word_score[elem[0]][embedding_1_bolukbasi] = 99
-            word_score[elem[0]][embedding_2_he_she] = 99
-            word_score[elem[0]][embedding_2_bolukbasi] = 99
-
-    # ranking with bolukbasi and Glove
-    print("Ranking with bolukbasi and", embedding_1)
-    ranked_words = get_bias_score_matrix(word_list, male_vectors_boluk, female_vectors_boluk, pkl_dict)
-    for elem in ranked_words:
-        word_score[elem[0]][embedding_1_bolukbasi] = round(elem[1], 5)
-
-    # Load word embedding 2
-    print("Choose the", embedding_2, "word embedding .PKL you want to load")
-    pkl_dict = None
-    gc.collect()
-    pkl_dict = reader_saver.load_pkl_to_dict()
-
-    # get new vectors from new word embedding
-    female_vectors, female_vectors_boluk, male_vectors, male_vectors_boluk = get_gender_ranking_vectors(pkl_dict)
-
-    # ranking with he-she and fastText
-    print("Ranking with he-she and ", embedding_2)
-    ranked_words = get_bias_score_matrix(word_list, male_vectors, female_vectors, pkl_dict)
-    for elem in ranked_words:
-        if elem[0] in word_score:
-            word_score[elem[0]][embedding_2_he_she] = round(elem[1], 5)
-        else:
-            word_score[elem[0]] = {}
-            word_score[elem[0]]["origin"] = origin
-            if elem[1] < 0:
-                word_score[elem[0]][embedding_1_he_she] = -99
-                word_score[elem[0]][embedding_1_bolukbasi] = -99
-            else:
-                word_score[elem[0]][embedding_1_he_she] = 99
-                word_score[elem[0]][embedding_1_bolukbasi] = 99
-            word_score[elem[0]][embedding_2_he_she] = round(elem[1], 5)
-
-    # ranking with bolukbasi and fastText
-    print("Ranking with bolukbasi and ", embedding_2)
-    ranked_words = get_bias_score_matrix(word_list, male_vectors_boluk, female_vectors_boluk, pkl_dict)
-    for elem in ranked_words:
-        word_score[elem[0]][embedding_2_bolukbasi] = round(elem[1], 5)
-
+    for embedding_str in word_embeddings_strs:
+        embedding_he_she: str = embedding_str + "_he_she"
+        embedding_bolukbasi: str = embedding_str + "_bolukbasi"
+        # reduce needed RAM space:
+        pkl_dict = None
+        gc.collect()
+        # Load word embedding
+        print("Choose the", embedding_str, "word embedding .PKL you want to load")
+        pkl_dict = reader_saver.load_pkl_to_dict()
+        # get vectors for cosine_distance
+        female_vectors, female_vectors_boluk, male_vectors, male_vectors_boluk = get_gender_ranking_vectors(pkl_dict)
+        # ranking with he-she and Glove
+        print("Ranking with he-she and", embedding_str)
+        ranked_words = get_bias_score_matrix(word_list, male_vectors, female_vectors, pkl_dict)
+        # normalize ranked words
+        ranked_words = normalize_ranked_words(ranked_words)
+        print("Ranked words:", ranked_words[0:5])
+        print("Dictionary bool is:", bool(word_score))
+        for elem in ranked_words:
+            if elem[0] not in word_score:
+                word_score[elem[0]] = {}
+                word_score[elem[0]]["origin"] = origin
+            word_score[elem[0]][embedding_he_she] = round(elem[1], 5)
+        # ranking with bolukbasi and Glove
+        print("Ranking with bolukbasi and", embedding_str)
+        ranked_words = get_bias_score_matrix(word_list, male_vectors_boluk, female_vectors_boluk, pkl_dict)
+        ranked_words = normalize_ranked_words(ranked_words)
+        print("Ranked words:", ranked_words[0:5])
+        for elem in ranked_words:
+            word_score[elem[0]][embedding_bolukbasi] = round(elem[1], 5)
+    # delete all keys which are not present in all word_embeddings
+    incomplete_ranking = []
     for key in word_score:
-        word_score[key]["sum_all"] = round(
-            (word_score[key][embedding_1_he_she] + word_score[key][embedding_1_bolukbasi] +
-             word_score[key][embedding_2_he_she] + word_score[key][embedding_2_bolukbasi]), 5)
+        if len(word_score[key]) < 9:
+            incomplete_ranking.append(key)
+    for key in incomplete_ranking:
+        print("Incomplete Ranking::::", key, "::::", word_score[key])
+        del word_score[key]
+
+    # create sum of all scores in sub-dictionary (except for "origin" which is a str)
+    for key in word_score:
+        sum_all: float = 0
+        for sub_key in word_score[key]:
+            if sub_key != "origin":
+                sum_all += word_score[key][sub_key]
+        word_score[key]["sum_all"] = round(sum_all, 5)
+
+    word_score = normalize_sum_all(word_score)
 
     # Save the dict to a file
     save_ranked_words_dict_to_file(word_score)
-
     return
 
 

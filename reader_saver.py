@@ -316,10 +316,6 @@ def save_ranked_words_dict_to_file(word_score):
 
     :param word_score: dict of ranked words
     """
-    for key in word_score:
-        print(key, ":")
-        for sub_key in word_score[key]:
-            print(sub_key, "->", word_score[key][sub_key])
     write_nested_dict_to_file(word_score, sorted(word_score, key=lambda x: word_score[x]["sum_all"]))
 
 

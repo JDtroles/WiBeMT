@@ -5,5 +5,5 @@ if __name__ == "__main__":
     print("main")
     # pipeline_0()
     # pipeline_1("fastText_1M_300d_wiki_UMBC_statmt", "fastText_2M_300d_commonCrawl", get_20_handpicked_adjectives())
-    # pipeline_1("fastText_1M_300d_wiki_UMBC_statmt", "fastText_2M_300d_commonCrawl")
-    pipeline_2()
+    pipeline_1(["fastText_small", "fastText_large", "GloVe_small", "GloVe_large"])
+    # pipeline_2()
