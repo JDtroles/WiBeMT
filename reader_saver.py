@@ -282,12 +282,14 @@ def write_nested_dict_to_file(dict_to_save: dict, sorted_keys: list = None, writ
     :return: None
     """
     file_saver = get_file_saver_instance(".txt")
+    tabs_num = 4
     if file_saver is None:
         print("Not Saved")
         return
     if sorted_keys is not None:
         for key in sorted_keys:
             file_saver.write(str(key))
+            file_saver.write("\t" * (tabs_num - (len(str(key)) // 4)))
             for sub_key in dict_to_save[key]:
                 file_saver.write("\t")
                 if write_subkeys:
@@ -329,35 +331,35 @@ def select_word_list() -> [str, list]:
     # load the word list you want to rank
     print("Now choose the origin of the word list:")
     print("patternbasedwriting.com = 1")
-    print("Oxford Dictionary = 2")
+    print("pbw & Garg = 2")
     print("Garg = 3")
-    print("misc = 4")
+    print("WinoGender + WinoBias + Garg = 4")
     while True:
         try:
             origin_int = int(input("Enter the corresponding number:"))
             if origin_int < 1 or origin_int > 4:
                 raise ValueError
             elif origin_int == 1:
-                origin = "patternbasedwriting.com"
-                print("You chose \"patternbasedwriting.com\" as origin")
+                origin = "pbw"
+                print("You chose \"", origin, "\" as origin")
                 print("Now choose the corresponding wordlist in .txt format")
                 word_list = load_vocab_to_list_at_2nd_pos()
                 break
             elif origin_int == 2:
-                origin = "Oxford Dictionary"
-                print("You chose \"Oxford Dictionary\" as origin")
-                # print("Now choose the corresponding wordlist in .txt format")
-                print("No Oxford list available yet")
+                origin = "pbw_Garg"
+                print("You chose \"", origin, "\" as origin")
+                print("Now choose the corresponding wordlist in .txt format")
+                word_list = load_vocab_to_list_at_1st_pos()
                 break
             elif origin_int == 3:
                 origin = "Garg"
-                print("You chose \"Garg\" as origin")
+                print("You chose \"", origin, "\" as origin")
                 print("Now choose the corresponding wordlist in .txt format")
-                word_list = load_nested_vocab_to_list()
+                word_list = load_vocab_to_list_at_1st_pos()
                 break
             elif origin_int == 4:
-                origin = "misc"
-                print("You chose \"fastText\" as origin")
+                origin = "WiGe_WiBi_Garg"
+                print("You chose \"", origin, "\" as origin")
                 print("Now choose the corresponding wordlist in .txt format")
                 word_list = load_vocab_to_list_at_1st_pos()
                 break

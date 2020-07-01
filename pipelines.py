@@ -75,8 +75,8 @@ def pipeline_1(word_embeddings_strs: list, word_list: list = None, origin_of_wor
         origin = origin_of_word_list
 
     for embedding_str in word_embeddings_strs:
-        embedding_he_she: str = embedding_str + "_he_she"
-        embedding_bolukbasi: str = embedding_str + "_bolukbasi"
+        embedding_he_she: str = embedding_str + "_heShe"
+        embedding_bolukbasi: str = embedding_str + "_boluk"
         # reduce needed RAM space:
         pkl_dict = None
         gc.collect()
@@ -109,21 +109,37 @@ def pipeline_1(word_embeddings_strs: list, word_list: list = None, origin_of_wor
     for key in word_score:
         if len(word_score[key]) < 9:
             incomplete_ranking.append(key)
+    # append key+sub_dict to incomplete_word_scores
+    # calculate sum of subkeys
+    # delete entry from word_score
+    incomplete_word_scores = {}
     for key in incomplete_ranking:
-        print("Incomplete Ranking::::", key, "::::", word_score[key])
+        print("Incomplete rankings ::::", key, ":", word_score[key])
+        incomplete_word_scores[key] = word_score[key]
         del word_score[key]
+        sum_all: float = 0
+        for idx, sub_key in enumerate(incomplete_word_scores[key]):
+            count = idx
+            if sub_key != "origin":
+                sum_all += incomplete_word_scores[key][sub_key]
+        incomplete_word_scores[key]["sum_all"] = round((sum_all / count), 5)
 
     # create sum of all scores in sub-dictionary (except for "origin" which is a str)
     for key in word_score:
         sum_all: float = 0
-        for sub_key in word_score[key]:
+        for idx, sub_key in enumerate(word_score[key]):
+            count = idx
             if sub_key != "origin":
                 sum_all += word_score[key][sub_key]
-        word_score[key]["sum_all"] = round(sum_all, 5)
+        word_score[key]["sum_all"] = round((sum_all / count), 5)
 
-    word_score = normalize_sum_all(word_score)
+    # word_score = normalize_sum_all(word_score)
 
+    # Save the incomplete rankings
+    print("Save the incomplete rankings:")
+    save_ranked_words_dict_to_file(incomplete_word_scores)
     # Save the dict to a file
+    print("Save the complete rankings:")
     save_ranked_words_dict_to_file(word_score)
     return
 
