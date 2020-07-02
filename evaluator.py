@@ -8,7 +8,7 @@ from tqdm import tqdm
 
 
 def cosine_distance(a, b):
-    s = np.sum(a*b, axis=-1)
+    s = np.sum(a * b, axis=-1)
     norm_a = np.linalg.norm(a, axis=-1)
     norm_b = np.linalg.norm(b, axis=-1)
     return s / (norm_a * norm_b)
@@ -41,7 +41,8 @@ def get_bias_score(compare_list: list, male_words: list, female_words: list, wor
     return word_dict
 
 
-def get_bias_score_matrix(compare_list: list, male_vectors: np.array, female_vectors: np.array, word_embedding: [list]) -> [list]:
+def get_bias_score_matrix(compare_list: list, male_vectors: np.array, female_vectors: np.array,
+                          word_embedding: [list]) -> [list]:
     word_tuples = []
     for comp_word in compare_list:
         if comp_word in word_embedding:
