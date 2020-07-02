@@ -56,10 +56,12 @@ def pipeline_0():
 #####
 # pipeline_1 ranks words and saves them as a dict with the following format:
 # word -> origin -> emb_1_he_she -> emb_1_boluk -> emb_2_he_she -> emb_2_boluk
-def pipeline_1(word_embeddings_strs: list, word_list: list = None, origin_of_word_list: str = None):
+def pipeline_1(word_embeddings_strs: list, word_emb_paths: list = None, word_list: list = None,
+               origin_of_word_list: str = None):
     """
     pipeline_1 ranks a word list with two embeddings and writes the results to a runtime specified file
 
+    :param word_emb_paths: list of path to the four wordembeddings to speed up process of ranking
     :param word_embeddings_strs: list of the 4 word_embedding-names
     :param word_list: list of words to be ranked
     :param origin_of_word_list: str where the list of words originates from
@@ -74,15 +76,18 @@ def pipeline_1(word_embeddings_strs: list, word_list: list = None, origin_of_wor
     else:
         origin = origin_of_word_list
 
-    for embedding_str in word_embeddings_strs:
+    for idx, embedding_str in enumerate(word_embeddings_strs, 0):
         embedding_he_she: str = embedding_str + "_heShe"
         embedding_bolukbasi: str = embedding_str + "_boluk"
         # reduce needed RAM space:
         pkl_dict = None
         gc.collect()
         # Load word embedding
-        print("Choose the", embedding_str, "word embedding .PKL you want to load")
-        pkl_dict = reader_saver.load_pkl_to_dict()
+        if word_emb_paths is None:
+            print("Choose the", embedding_str, "word embedding .PKL you want to load")
+            pkl_dict = reader_saver.load_pkl_to_dict()
+        else:
+            pkl_dict = reader_saver.load_pkl_to_dict(word_emb_paths[idx])
         # get vectors for cosine_distance
         female_vectors, female_vectors_boluk, male_vectors, male_vectors_boluk = get_gender_ranking_vectors(pkl_dict)
         # ranking with he-she and Glove

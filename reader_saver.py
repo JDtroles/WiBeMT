@@ -8,7 +8,6 @@ from tkinter import filedialog
 import numpy as np
 import re
 
-
 INITIAL_DIR_WORDS = "/home/Jonas/Nextcloud/#CitH/Masterarbeit"
 INITIAL_DIR_EMBEDDINGS = "/home/Jonas/Desktop"
 INITIAL_DIR = "/home/Jonas/Desktop"
@@ -91,15 +90,17 @@ def save_dict_to_pkl(dict_to_save) -> None:
         print('cannot save: ', file_path)
 
 
-def load_pkl_to_dict() -> dict:
+def load_pkl_to_dict(file_path: str = None) -> dict:
     """
     loads a word_embedding in .pkl format which one selects at runtime
 
     :rtype dict
     :return: word_embedding: key = word, value = vector
     """
-    file_path = get_file_path_for_loading("Choose a word embedding file in .pickle format")
-    print("You selected the file: ", str(file_path))
+    if file_path is None:
+        file_path = get_file_path_for_loading("Choose a word embedding file in .pickle format")
+        print("You selected the file: ", str(file_path))
+
     # Load data
     try:
         with open(file_path, 'rb') as handle:
@@ -266,7 +267,7 @@ def write_nested_list_to_file(list_to_save):
     for item in list_to_save:
         for i, value in enumerate(item):
             file_saver.write(str(value))
-            if i+1 < len(item):
+            if i + 1 < len(item):
                 file_saver.write("\t")
         file_saver.write("\n")
     print("File saved")
@@ -282,14 +283,20 @@ def write_nested_dict_to_file(dict_to_save: dict, sorted_keys: list = None, writ
     :return: None
     """
     file_saver = get_file_saver_instance(".txt")
-    tabs_num = 4
     if file_saver is None:
         print("Not Saved")
         return
+    # writes one line, with column headings and then only the valuey
     if sorted_keys is not None:
+        # write column names
+        file_saver.write("Word")
+        if sorted_keys:
+            for sub_key in dict_to_save[sorted_keys[0]]:
+                file_saver.write("\t")
+                file_saver.write(sub_key)
+            file_saver.write("\n")
         for key in sorted_keys:
             file_saver.write(str(key))
-            file_saver.write("\t" * (tabs_num - (len(str(key)) // 4)))
             for sub_key in dict_to_save[key]:
                 file_saver.write("\t")
                 if write_subkeys:
@@ -318,7 +325,8 @@ def save_ranked_words_dict_to_file(word_score):
 
     :param word_score: dict of ranked words
     """
-    write_nested_dict_to_file(word_score, sorted(word_score, key=lambda x: word_score[x]["sum_all"]))
+    write_nested_dict_to_file(word_score, sorted(word_score, key=lambda x: word_score[x]["sum_all"]),
+                              write_subkeys=False)
 
 
 def select_word_list() -> [str, list]:
