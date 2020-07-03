@@ -9,10 +9,11 @@ if __name__ == "__main__":
     print("main")
     # pipeline_0()
     # pipeline_1("fastText_1M_300d_wiki_UMBC_statmt", "fastText_2M_300d_commonCrawl", get_20_handpicked_adjectives())
-    pipeline_1(["fastText_small", "fastText_large", "GloVe_small", "GloVe_large"], word_embeddings_paths)
-    # pipeline_2()
+    # pipeline_1(["fastText_small", "fastText_large", "GloVe_small", "GloVe_large"], word_embeddings_paths)
+    pipeline_2()
 
     # TODO: create new verb sentences (with adjectives)
     # TODO: create adjective sentences
     # TODO: create latex lists/tables for appendix
     # TODO: translate sentences
+    # TODO: check adjectives list

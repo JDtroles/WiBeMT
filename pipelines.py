@@ -173,7 +173,9 @@ def pipeline_2():
     print([sentence for sentence in verb_sentences[0:4]])
     print("Choose the list of occupations you want to load")
     print("selects tab separated 1st position")
-    occupations: list = reader_saver.load_vocab_to_list_at_1st_pos()
+    occupations: list = reader_saver.load_nested_list_to_list()
+    for elem in occupations:
+        elem[1] = elem[1].replace("N", "I")
     print([occupation for occupation in occupations[0:4]])
     # ID: VF01OccF01AdjF01 ->   V for verb, F for gender of verb (F, M), 01 is an incremented int,
     #                           Occ for occupation, F for gender of occupation (F, N, M), 01 is an incremented int,
@@ -185,7 +187,6 @@ def pipeline_2():
         sentence_number = sentence_info[3]
         id_base: str = "V" + sentence_gender + str(sentence_number).zfill(2)
         for idx_occ, occupation_info in enumerate(occupations):
-            # TODO: check if function works with correct occupations format
             if type(occupation_info) is str:
                 occupation = occupation_info
                 occupation_gender = "OG"

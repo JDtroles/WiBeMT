@@ -173,7 +173,6 @@ def load_verb_sentence_to_list_at_2nd_pos(separator: str = "\t") -> list:
     return verb_sentences
 
 
-# TODO: add gender to occupatuions_list and unique number
 def load_vocab_to_list_at_1st_pos() -> list:
     r"""raw
     loads a list of words from a file
@@ -265,10 +264,10 @@ def write_nested_list_to_file(list_to_save):
         print("Not Saved")
         return
     for item in list_to_save:
-        for i, value in enumerate(item):
+        file_saver.write(item[0])
+        for value in item[1:]:
+            file_saver.write("\t")
             file_saver.write(str(value))
-            if i + 1 < len(item):
-                file_saver.write("\t")
         file_saver.write("\n")
     print("File saved")
 
@@ -375,3 +374,50 @@ def select_word_list() -> [str, list]:
         except ValueError:
             print("Please enter an int between 1 - 4")
     return origin, word_list
+
+
+def load_dictcc_to_list_at_1st_pos(word_type: str = "verb") -> list:
+    r"""raw
+    loads a list of words from a file
+
+    line-separator: "\\\t"
+
+    1st position in line is selected as list element
+
+    :return: list of words
+    """
+    file_path = get_file_path_for_loading("Choose a word list file in .txt format")
+
+    vocab_list = []
+    with open(file_path, 'r', encoding="utf-8") as f:
+        for line in tqdm(f.readlines(), desc="Creating vocab list: "):
+            if len(line.strip()) > 0:
+                values = line.split("\t")
+                # only consider lines with at least 3 elements
+                if len(values) >= 3:
+                    # only consider lines with correct wordtype in 3rd position
+                    if values[2] == word_type:
+                        # only consider single verbs ("to verb")
+                        if len(values[0].split(" ")) == 2:
+                            to_word = values[0].strip("'")
+                            word = to_word.split(" ")[1]
+                            vocab_list.append(word.rstrip())
+    return vocab_list
+
+
+def load_nested_list_to_list() -> list:
+    """
+    loads a list of words from a file where each line contains a list of words
+    element-separator: tab;
+
+
+    :rtype list
+    :return: list of words
+    """
+    file_path = get_file_path_for_loading("Choose a nested word list file in .txt format")
+    occupations = []
+    with open(file_path, 'r', encoding="utf-8") as f:
+        for line in tqdm(f.readlines(), desc="Creating vocab list: "):
+            values: list = line.split("\t")
+            occupations.append([value.strip() for value in values])
+    return occupations
