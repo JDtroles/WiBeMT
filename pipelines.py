@@ -216,7 +216,6 @@ def pipeline_2():
 # TASK 2:
 # OUT:
 def pipeline_3():
-    # TODO: add gender of occupations
     print("Choose the WinoBias sentence dataset:")
     winobias_data: [list] = reader_saver.load_nested_list_to_list()
     winobias_data_plus_adj: list = []
@@ -225,8 +224,15 @@ def pipeline_3():
     adjectives_data: list = reader_saver.load_nested_list_to_list()
     del_obj = adjectives_data.pop(0)
     print("Deleted object from 'adjectives_data':", del_obj)
+    print("Choose the list of occupations:")
+    occupations_data = reader_saver.load_nested_list_to_list()
+    id_count = 1
     for winobias_sub_list in winobias_data:
         occ_splitted = winobias_sub_list[3].split(" ")
+        # get gender-class of the occupation
+        for occ_sub_list in occupations_data:
+            if occ_sub_list[0] == occ_splitted[1]:
+                occupation_gender: str = occ_sub_list[1]
         # if "The" or "the -> no manipulation of occ_splitted needed
         if occ_splitted[0] == "The" or occ_splitted[0] == "the":
             for adj_sub_list in adjectives_data:
@@ -238,8 +244,12 @@ def pipeline_3():
                 replacement = occ_splitted[0] + " " + adjective + " " + occ_splitted[1]
                 winobias_sub_list_plus_adj[2] = winobias_sub_list_plus_adj[2].replace(winobias_sub_list_plus_adj[3],
                                                                                       replacement)
+                winobias_sub_list_plus_adj.append(occupation_gender)
                 winobias_sub_list_plus_adj.append(adjective)
                 winobias_sub_list_plus_adj.append(adj_gender)
+                winobias_sub_list_plus_adj.append(
+                    str(id_count).zfill(5) + occ_splitted[1][0:2] + occupation_gender + adjective[0:2] + adj_gender)
+                id_count += 1
                 winobias_data_plus_adj.append(winobias_sub_list_plus_adj)
         else:
             occ_splitted = winobias_sub_list[3].split(" ")
@@ -252,16 +262,24 @@ def pipeline_3():
                     replacement = "an" + " " + adjective + " " + occ_splitted[1]
                     winobias_sub_list_plus_adj[2] = winobias_sub_list_plus_adj[2].replace(winobias_sub_list_plus_adj[3],
                                                                                           replacement)
+                    winobias_sub_list_plus_adj.append(occupation_gender)
                     winobias_sub_list_plus_adj.append(adjective)
                     winobias_sub_list_plus_adj.append(adj_gender)
+                    winobias_sub_list_plus_adj.append(
+                        str(id_count).zfill(5) + occ_splitted[1][0:2] + occupation_gender + adjective[0:2] + adj_gender)
+                    id_count += 1
                     winobias_data_plus_adj.append(winobias_sub_list_plus_adj)
 
                 else:
                     replacement = "a" + " " + adjective + " " + occ_splitted[1]
                     winobias_sub_list_plus_adj[2] = winobias_sub_list_plus_adj[2].replace(winobias_sub_list_plus_adj[3],
                                                                                           replacement)
+                    winobias_sub_list_plus_adj.append(occupation_gender)
                     winobias_sub_list_plus_adj.append(adjective)
                     winobias_sub_list_plus_adj.append(adj_gender)
+                    winobias_sub_list_plus_adj.append(
+                        str(id_count).zfill(5) + occ_splitted[1][0:2] + occupation_gender + adjective[0:2] + adj_gender)
+                    id_count += 1
                     winobias_data_plus_adj.append(winobias_sub_list_plus_adj)
     for i in range(20):
         print("Random sub list from winobias_data_plus_adj", i, ":")
