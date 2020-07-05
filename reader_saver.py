@@ -418,6 +418,8 @@ def load_nested_list_to_list() -> list:
     occupations = []
     with open(file_path, 'r', encoding="utf-8") as f:
         for line in tqdm(f.readlines(), desc="Creating vocab list: "):
+            if not line.strip():
+                continue
             values: list = line.split("\t")
             occupations.append([value.strip() for value in values])
     return occupations

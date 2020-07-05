@@ -1,4 +1,5 @@
 import gc
+import random
 
 import reader_saver
 from evaluator import get_bias_score_matrix
@@ -215,7 +216,57 @@ def pipeline_2():
 # TASK 2:
 # OUT:
 def pipeline_3():
-    # TODO: Implement
+    # TODO: add gender of occupations
+    print("Choose the WinoBias sentence dataset:")
+    winobias_data: [list] = reader_saver.load_nested_list_to_list()
+    winobias_data_plus_adj: list = []
+    print(winobias_data[0:5])
+    print("Choose the list of gender adjectives:")
+    adjectives_data: list = reader_saver.load_nested_list_to_list()
+    del_obj = adjectives_data.pop(0)
+    print("Deleted object from 'adjectives_data':", del_obj)
+    for winobias_sub_list in winobias_data:
+        occ_splitted = winobias_sub_list[3].split(" ")
+        # if "The" or "the -> no manipulation of occ_splitted needed
+        if occ_splitted[0] == "The" or occ_splitted[0] == "the":
+            for adj_sub_list in adjectives_data:
+                winobias_sub_list_plus_adj = list(winobias_sub_list)
+                print("Winobias_sub_list:", winobias_sub_list)
+                print("Winobias_sub_list_plus_adj:", winobias_sub_list_plus_adj)
+                adjective = adj_sub_list[0]
+                adj_gender = adj_sub_list[1]
+                replacement = occ_splitted[0] + " " + adjective + " " + occ_splitted[1]
+                winobias_sub_list_plus_adj[2] = winobias_sub_list_plus_adj[2].replace(winobias_sub_list_plus_adj[3],
+                                                                                      replacement)
+                winobias_sub_list_plus_adj.append(adjective)
+                winobias_sub_list_plus_adj.append(adj_gender)
+                winobias_data_plus_adj.append(winobias_sub_list_plus_adj)
+        else:
+            occ_splitted = winobias_sub_list[3].split(" ")
+            # if "a" and adj starts with vocal -> an
+            for adj_sub_list in adjectives_data:
+                winobias_sub_list_plus_adj = list(winobias_sub_list)
+                adjective = adj_sub_list[0]
+                adj_gender = adj_sub_list[1]
+                if adjective.startswith("a") or adjective.startswith("e"):
+                    replacement = "an" + " " + adjective + " " + occ_splitted[1]
+                    winobias_sub_list_plus_adj[2] = winobias_sub_list_plus_adj[2].replace(winobias_sub_list_plus_adj[3],
+                                                                                          replacement)
+                    winobias_sub_list_plus_adj.append(adjective)
+                    winobias_sub_list_plus_adj.append(adj_gender)
+                    winobias_data_plus_adj.append(winobias_sub_list_plus_adj)
+
+                else:
+                    replacement = "a" + " " + adjective + " " + occ_splitted[1]
+                    winobias_sub_list_plus_adj[2] = winobias_sub_list_plus_adj[2].replace(winobias_sub_list_plus_adj[3],
+                                                                                          replacement)
+                    winobias_sub_list_plus_adj.append(adjective)
+                    winobias_sub_list_plus_adj.append(adj_gender)
+                    winobias_data_plus_adj.append(winobias_sub_list_plus_adj)
+    for i in range(20):
+        print("Random sub list from winobias_data_plus_adj", i, ":")
+        print(random.choice(winobias_data_plus_adj))
+    reader_saver.write_nested_list_to_file(winobias_data_plus_adj)
     return
 
 
