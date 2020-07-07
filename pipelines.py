@@ -233,6 +233,13 @@ def pipeline_3():
         for occ_sub_list in occupations_data:
             if occ_sub_list[0] == occ_splitted[1]:
                 occupation_gender: str = occ_sub_list[1]
+        winobias_sub_list.append(occupation_gender)
+        base_sentence = list(winobias_sub_list)
+        base_sentence.append("---")
+        base_sentence.append("---")
+        base_sentence.append(str(id_count).zfill(5) + occ_splitted[1][0:2] + occupation_gender + "NaNa")
+        winobias_data_plus_adj.append(base_sentence)
+        id_count += 1
         # if "The" or "the -> no manipulation of occ_splitted needed
         if occ_splitted[0] == "The" or occ_splitted[0] == "the":
             for adj_sub_list in adjectives_data:
@@ -244,7 +251,6 @@ def pipeline_3():
                 replacement = occ_splitted[0] + " " + adjective + " " + occ_splitted[1]
                 winobias_sub_list_plus_adj[2] = winobias_sub_list_plus_adj[2].replace(winobias_sub_list_plus_adj[3],
                                                                                       replacement)
-                winobias_sub_list_plus_adj.append(occupation_gender)
                 winobias_sub_list_plus_adj.append(adjective)
                 winobias_sub_list_plus_adj.append(adj_gender)
                 winobias_sub_list_plus_adj.append(
@@ -262,7 +268,6 @@ def pipeline_3():
                     replacement = "an" + " " + adjective + " " + occ_splitted[1]
                     winobias_sub_list_plus_adj[2] = winobias_sub_list_plus_adj[2].replace(winobias_sub_list_plus_adj[3],
                                                                                           replacement)
-                    winobias_sub_list_plus_adj.append(occupation_gender)
                     winobias_sub_list_plus_adj.append(adjective)
                     winobias_sub_list_plus_adj.append(adj_gender)
                     winobias_sub_list_plus_adj.append(
@@ -274,7 +279,6 @@ def pipeline_3():
                     replacement = "a" + " " + adjective + " " + occ_splitted[1]
                     winobias_sub_list_plus_adj[2] = winobias_sub_list_plus_adj[2].replace(winobias_sub_list_plus_adj[3],
                                                                                           replacement)
-                    winobias_sub_list_plus_adj.append(occupation_gender)
                     winobias_sub_list_plus_adj.append(adjective)
                     winobias_sub_list_plus_adj.append(adj_gender)
                     winobias_sub_list_plus_adj.append(

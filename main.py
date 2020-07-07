@@ -13,8 +13,5 @@ if __name__ == "__main__":
     # pipeline_2()
     pipeline_3()
 
-    # TODO: create new verb sentences (with adjectives)
-    # TODO: create adjective sentences
     # TODO: create latex lists/tables for appendix
     # TODO: translate sentences
-    # TODO: check adjectives list
