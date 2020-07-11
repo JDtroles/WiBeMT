@@ -422,4 +422,5 @@ def load_nested_list_to_list() -> list:
                 continue
             values: list = line.split("\t")
             occupations.append([value.strip() for value in values])
+    print("You opened: " + Path(file_path).name)
     return occupations

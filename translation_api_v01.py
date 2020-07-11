@@ -1,10 +1,18 @@
-import os, requests, uuid, json
-from tqdm import tqdm
-from dotenv import load_dotenv
+import json
+import os
+import requests
+import uuid
 from time import sleep
-from reader_saver import load_nested_list_to_list, write_nested_list_to_file
+
+import six
+from dotenv import load_dotenv
+from tqdm import tqdm
+from google.cloud import translate_v2 as translate
+
+
 from misc import split_list_equally
-from translation_api_tester import sample_return, create_json_output_corresponding_to_input
+from reader_saver import load_nested_list_to_list, write_nested_list_to_file
+from translation_api_tester import create_json_output_corresponding_to_input
 
 
 def translate_sentences_via_api(api: str = "Microsoft", dataset_type: str = "Verb_sentences"):
@@ -32,21 +40,22 @@ def translate_sentences_via_api(api: str = "Microsoft", dataset_type: str = "Ver
     print(id_plus_sentences[0:5])
 
     # create a list with batches of 50 sentences
-    id_plus_sentences_chunked = list(split_list_equally(id_plus_sentences, 50))
+    id_plus_sentences_chunked = list(split_list_equally(id_plus_sentences, 30))
     print("len of sublist:")
     print(len(id_plus_sentences_chunked[0]))
 
     # create list of dict and list of id's for translation api
     all_translations = []
-    for chunk in tqdm(id_plus_sentences_chunked, desc="Translating with Microsoft Translator"):
-        sleep(1)
+    descr_str = "Translating with " + api + " Translate:"
+    for chunk in tqdm(id_plus_sentences_chunked, desc=descr_str):
+        sleep(0.5)
         # send chunk to translation api
         if api == "Microsoft":
             # TODO: write method
             all_translations.append(microsoft_api_caller(chunk))
         elif api == "Google":
             # TODO: write method
-            a = "a"
+            all_translations.append(google_api_caller(chunk))
 
     # append translation to list for verb_sentences
     sentences_info_with_translations = []
@@ -69,6 +78,52 @@ def translate_sentences_via_api(api: str = "Microsoft", dataset_type: str = "Ver
     print(sentences_info_with_translations[0:5])
     write_nested_list_to_file(sentences_info)
     return
+
+
+def google_api_caller(sentences_to_translate: list, test: bool = False) -> list:
+    # create correct format and id list
+    ids_sentences = []
+    sentences = []
+    for sentence in sentences_to_translate:
+        ids_sentences.append(sentence[0])
+        sentences.append(sentence[1])
+
+    load_dotenv()
+
+    # intialize client and parameters
+    translate_client = translate.Client()
+    model = "nmt"
+    source = "en"
+    target = "de"
+
+    if isinstance(sentences, six.binary_type):
+        text = sentences.decode("utf-8")
+
+    result = translate_client.translate(sentences, target_language=target, source_language=source, model=model)
+
+    # TODO: INSERT NEW KEY TO .env
+    translations = []
+    for text_id, text in zip(ids_sentences, result):
+        try:
+            translations.append([text_id, text['translatedText']])
+        except TypeError:
+            print("text_id:", text_id)
+            print("text:", text)
+            print(result)
+            try:
+                translations.append([text_id, text['error']['code']])
+            except TypeError:
+                translations.append([text_id, text])
+
+    # print("Translation after saving translations with id in sub_lists:")
+    # print(translations[0:5])
+    return translations
+
+    # translate(values, target_language=None, format_=None, source_language=None, customization_ids=(), model=None)
+    # values = str or list
+    # format_ = "text" or "html"
+    # return type = str or list
+    # Returns: a list of dict -> each dict contains keys "translatedText", "input", "model"
 
 
 def microsoft_api_caller(sentences_to_translate: list, test: bool = False) -> list:
@@ -128,7 +183,12 @@ def microsoft_api_caller(sentences_to_translate: list, test: bool = False) -> li
         except TypeError:
             print("text_id:", text_id)
             print("text:", text)
-            break
+            print(iterable_response)
+            try:
+                translations.append([text_id, text['error']['code']])
+            except TypeError:
+                translations.append([text_id, text])
+
     # print("Translation after saving translations with id in sub_lists:")
     # print(translations[0:5])
     return translations

@@ -14,7 +14,7 @@ if __name__ == "__main__":
     # pipeline_1(["fastText_small", "fastText_large", "GloVe_small", "GloVe_large"], word_embeddings_paths)
     # pipeline_2()
     # pipeline_3()
-    translate_sentences_via_api(api="Microsoft", dataset_type="WinoBias_sentences")
+    translate_sentences_via_api(api="Google", dataset_type="WinoBias_sentences")
 
 # TODO: create latex lists/tables for appendix
     # TODO: translate sentences
