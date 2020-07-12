@@ -1,6 +1,6 @@
 from get_ressources import get_20_handpicked_adjectives, get_20_handpicked_verbs
 from pipelines import pipeline_0, pipeline_1, pipeline_2, pipeline_3
-from translation_api_v01 import translate_sentences_via_api
+from translation_api_caller import translate_sentences_via_api
 
 
 if __name__ == "__main__":
@@ -14,7 +14,7 @@ if __name__ == "__main__":
     # pipeline_1(["fastText_small", "fastText_large", "GloVe_small", "GloVe_large"], word_embeddings_paths)
     # pipeline_2()
     # pipeline_3()
-    translate_sentences_via_api(api="Google", dataset_type="WinoBias_sentences")
+    translate_sentences_via_api(api="DeepL", dataset_type="WinoBias_sentences")
 
 # TODO: create latex lists/tables for appendix
     # TODO: translate sentences
