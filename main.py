@@ -1,3 +1,4 @@
+from evaluate_results import evaluate_gender_of_translation
 from get_ressources import get_20_handpicked_adjectives, get_20_handpicked_verbs
 from pipelines import pipeline_0, pipeline_1, pipeline_2, pipeline_3
 from translation_api_caller import translate_sentences_via_api
@@ -14,7 +15,7 @@ if __name__ == "__main__":
     # pipeline_1(["fastText_small", "fastText_large", "GloVe_small", "GloVe_large"], word_embeddings_paths)
     # pipeline_2()
     # pipeline_3()
-    translate_sentences_via_api(api="DeepL", dataset_type="WinoBias_sentences")
+    # translate_sentences_via_api(api="DeepL", dataset_type="WinoBias_sentences")
+    evaluate_gender_of_translation("verb_sentences")
 
 # TODO: create latex lists/tables for appendix
-    # TODO: translate sentences

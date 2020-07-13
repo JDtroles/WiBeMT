@@ -424,3 +424,35 @@ def load_nested_list_to_list() -> list:
             occupations.append([value.strip() for value in values])
     print("You opened: " + Path(file_path).name)
     return occupations
+
+
+def load_nested_list_to_dict() -> dict:
+    file_path = get_file_path_for_loading("Choose a nested word list file in .txt format")
+
+    occupation_translations: dict = {}
+
+    with open(file_path, 'r', encoding="utf-8") as f:
+        for line in tqdm(f.readlines(), desc="Creating vocab list: "):
+            if not line.strip():
+                continue
+            values: list = line.split("\t")
+            key = str(values[0])
+            fem_translations: list = values[1].split(", ")
+            fem_trans_strip = []
+            for elem in fem_translations:
+                elem = elem.strip(" ")
+                elem = elem.strip("\n")
+                fem_trans_strip.append(elem.strip(" "))
+
+            male_translations: list = values[2].split(", ")
+            male_trans_strip = []
+            for elem in male_translations:
+                elem = elem.strip(" ")
+                elem = elem.strip("\n")
+                male_trans_strip.append(elem.strip(" "))
+            occupation_translations[key]: dict = {}
+            occupation_translations[key]["female"] = fem_trans_strip
+            occupation_translations[key]["male"] = male_trans_strip
+
+    print("You opened: " + Path(file_path).name)
+    return occupation_translations
