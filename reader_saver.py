@@ -450,9 +450,32 @@ def load_nested_list_to_dict() -> dict:
                 elem = elem.strip(" ")
                 elem = elem.strip("\n")
                 male_trans_strip.append(elem.strip(" "))
+
+            neutral_translations: list = values[3].split(", ")
+            neutral_trans_strip = []
+            for elem in neutral_translations:
+                elem = elem.strip(" ")
+                elem = elem.strip("\n")
+                neutral_trans_strip.append(elem.strip(" "))
+
+            wrong_translations: list = values[4].split(", ")
+            wrong_trans_strip = []
+            for elem in wrong_translations:
+                elem = elem.strip(" ")
+                elem = elem.strip("\n")
+                wrong_trans_strip.append(elem.strip(" "))
+
             occupation_translations[key]: dict = {}
             occupation_translations[key]["female"] = fem_trans_strip
             occupation_translations[key]["male"] = male_trans_strip
+            if neutral_trans_strip != ['']:
+                occupation_translations[key]["neutral"] = neutral_trans_strip
+            else:
+                occupation_translations[key]["neutral"] = ["NoValueInList"]
+            if wrong_trans_strip != ['']:
+                occupation_translations[key]["wrong"] = wrong_trans_strip
+            else:
+                occupation_translations[key]["wrong"] = ["NoValueInList"]
 
     print("You opened: " + Path(file_path).name)
     return occupation_translations
