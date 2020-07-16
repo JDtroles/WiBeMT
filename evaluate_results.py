@@ -26,7 +26,7 @@ def special_rules_dativ_akkusativ(translation: str) -> str:
                     possible_article == "den" or possible_article == "dem" or possible_article == "des" or \
                     possible_article == "beim":
                 return "male"
-            elif article == "der":
+            elif article == "der" or possible_article == "der":
                 return "female"
             else:
                 print(translation)
@@ -146,7 +146,6 @@ def evaluate_gender_of_translation(data_structure: str = "verb_sentences"):
                 print("KeyError in: ", occupation)
                 print("Data: ", translation_data)
     elif data_structure == "WinoBias":
-        n_of_len_above_six = 0
         n_of_unclassified_sentences = 0
         n_of_construction_sentences = 0
         for translation_data in translations_data:
@@ -210,19 +209,18 @@ def evaluate_gender_of_translation(data_structure: str = "verb_sentences"):
                     print(translation_data)
                     print(translation)
                     print("Number of unclassified sentences:", n_of_unclassified_sentences)
-                if len(translation_data) > 10:
-                    n_of_len_above_six += 1
-                    print("MULTIPLE OCCUPATION TRANSLATIONS FOUND:")
-                    print(translation_data)
-                    print("NEUTRAL LIST VALUES")
-                    print("BEGINNING" + str(occupation_trans[occupation]["neutral"]) + "ENDING")
-                    print("WRONG LIST VALUES")
-                    print("BEGINNING" + str(occupation_trans[occupation]["wrong"]) + "ENDING")
-                    print("Number of lines with length above 9: ", n_of_len_above_six)
-                    print("Length of translation_data:", len(translation_data))
             except KeyError:
                 print("KeyError in: ", occupation)
                 print("Data: ", translation_data)
+    n_of_len_above_six = 0
+    for elem in translations_data:
+        if len(elem) > 10:
+            n_of_len_above_six += 1
+            print("MULTIPLE OCCUPATION TRANSLATIONS FOUND:")
+            print(elem)
+            # TODO: add printout of occupation lists
+            print("Number of lines with length above 9: ", n_of_len_above_six)
+            print("Length of translation_data:", len(elem))
     print("Number of construction worker sentences:", n_of_construction_sentences)
     write_nested_list_to_file(translations_data)
     return
