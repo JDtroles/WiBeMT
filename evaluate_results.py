@@ -89,6 +89,7 @@ def evaluate_gender_of_translation(data_structure: str = "verb_sentences"):
         for translation_data in translations_data:
             occupation = translation_data[3]
             translation = translation_data[4].translate(str.maketrans('', '', string.punctuation))
+            translation = translation + " "
 
             try:
                 female_found: bool = False
@@ -154,6 +155,8 @@ def evaluate_gender_of_translation(data_structure: str = "verb_sentences"):
                 n_of_construction_sentences += 1
                 continue
             translation = translation_data[8].translate(str.maketrans('', '', string.punctuation))
+            translation = translation + " "
+
             try:
                 female_found: bool = False
                 male_found: bool = False
