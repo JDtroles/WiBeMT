@@ -22,12 +22,16 @@ def special_rules_dativ_akkusativ(translation: str) -> str:
             except IndexError:
                 print(10 * "Special rule index is out of range\n")
                 continue
-            if article == "den" or article == "dem" or possible_article == "den" or possible_article == "dem":
+            if article == "den" or article == "dem" or article == "des" or article == "beim" or \
+                    possible_article == "den" or possible_article == "dem" or possible_article == "des" or \
+                    possible_article == "beim":
                 return "male"
             elif article == "der":
                 return "female"
             else:
                 print(translation)
+                print("article:", article)
+                print("possible_article:", possible_article)
                 print(10 * "NO MATCHING ARTICLE\n")
                 return False
         else:
@@ -36,10 +40,12 @@ def special_rules_dativ_akkusativ(translation: str) -> str:
 
 # TODO: check "Vorgesetzte"
 def special_rules_nominativ(translation: str) -> str:
+    special_found_male = False
+    special_found_female = False
     case_dependent_occupations: list = ["Angestellte", "Bedienstete", "Vorgesetzte", "Anwesende",
                                         "Vorstandsvorsitzende"]
     for case_dependent_occupation in case_dependent_occupations:
-        if " " + case_dependent_occupation + " " in translation or " " + case_dependent_occupation + "," in translation:
+        if " " + case_dependent_occupation + " " in translation:
             words: list = translation.split(" ")
             for index, word in enumerate(words):
                 words[index] = word.strip(",")
@@ -55,15 +61,15 @@ def special_rules_nominativ(translation: str) -> str:
                 print(10 * "Special rule index is out of range\n")
                 continue
             if article == "der" or possible_article == "der":
-                return "male"
+                special_found_male = True
             elif article == "die" or possible_article == "die":
-                return "female"
-            else:
-                print(translation)
-                print(10 * "NO MATCHING ARTICLE\n")
-                return False
-        else:
-            return False
+                special_found_female = True
+    if special_found_male:
+        return "male"
+    elif special_found_female:
+        return "female"
+    else:
+        return False
 
 
 def evaluate_gender_of_translation(data_structure: str = "verb_sentences"):
@@ -165,26 +171,25 @@ def evaluate_gender_of_translation(data_structure: str = "verb_sentences"):
                 # find male translations
                 for male_occ_trans in occupation_trans[occupation]["male"]:
                     male_occ_trans_plus_spaces = male_occ_trans + " "
-                    male_occ_trans_plus_comma = male_occ_trans + ","
                     male_occ_trans_plus_s = male_occ_trans + "s "
 
-                    if male_occ_trans_plus_spaces in translation or male_occ_trans_plus_comma in translation or male_occ_trans_plus_s in translation:
+                    if male_occ_trans_plus_spaces in translation or male_occ_trans_plus_s in translation:
                         male_found = True
                 if male_found:
                     translation_data.append("male")
                 # find neutral translations
                 for neutral_occ_trans in occupation_trans[occupation]["neutral"]:
                     neutral_occ_trans_plus_spaces = neutral_occ_trans + " "
-                    neutral_occ_trans_plus_comma = neutral_occ_trans + ","
-                    if neutral_occ_trans_plus_spaces in translation or neutral_occ_trans_plus_comma in translation:
+                    neutral_occ_trans_plus_s = neutral_occ_trans + "s "
+                    if neutral_occ_trans_plus_spaces in translation or neutral_occ_trans_plus_s in translation:
                         neutral_found = True
                 if neutral_found:
                     translation_data.append("neutral")
                 # find wrong translations
                 for wrong_occ_trans in occupation_trans[occupation]["wrong"]:
                     wrong_occ_trans_plus_spaces = wrong_occ_trans + " "
-                    wrong_occ_trans_plus_comma = wrong_occ_trans + ","
-                    if wrong_occ_trans_plus_spaces in translation or wrong_occ_trans_plus_comma in translation:
+                    wrong_occ_trans_plus_s = wrong_occ_trans + "s "
+                    if wrong_occ_trans_plus_spaces in translation or wrong_occ_trans_plus_s in translation:
                         wrong_found = True
                 if wrong_found:
                     translation_data.append("wrong")
@@ -200,6 +205,7 @@ def evaluate_gender_of_translation(data_structure: str = "verb_sentences"):
                     n_of_unclassified_sentences += 1
                     print("NO OCCUPATION TRANSLATION FOUND:")
                     print(translation_data)
+                    print(translation)
                     print("Number of unclassified sentences:", n_of_unclassified_sentences)
                 if len(translation_data) > 10:
                     n_of_len_above_six += 1
