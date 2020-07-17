@@ -4,8 +4,8 @@ from reader_saver import load_nested_list_to_dict, load_nested_list_to_list, wri
 
 
 def special_rules_dativ_akkusativ(translation: str) -> str:
-    case_dependent_occupations: list = ["Angestellten", "Bediensteten", "Vorgesetzten", "Anwesenden",
-                                        "Vorstandsvorsitzenden"]
+    case_dependent_occupations: list = ["Angestellten", "Büroangestellten", "Bediensteten", "Vorgesetzten",
+                                        "Anwesenden", "Vorstandsvorsitzenden", "Beratenden"]
     for case_dependent_occupation in case_dependent_occupations:
         if " " + case_dependent_occupation in translation:
             words: list = translation.split(" ")
@@ -22,9 +22,9 @@ def special_rules_dativ_akkusativ(translation: str) -> str:
             except IndexError:
                 print(10 * "Special rule index is out of range\n")
                 continue
-            if article == "den" or article == "dem" or article == "des" or article == "beim" or \
+            if article == "den" or article == "dem" or article == "des" or article == "beim" or article == "vom" or\
                     possible_article == "den" or possible_article == "dem" or possible_article == "des" or \
-                    possible_article == "beim":
+                    possible_article == "beim" or possible_article == "vom":
                 return "male"
             elif article == "der" or possible_article == "der":
                 return "female"
@@ -34,8 +34,7 @@ def special_rules_dativ_akkusativ(translation: str) -> str:
                 print("possible_article:", possible_article)
                 print(10 * "NO MATCHING ARTICLE\n")
                 return False
-        else:
-            return False
+    return False
 
 
 # TODO: check "Vorgesetzte"
@@ -148,6 +147,7 @@ def evaluate_gender_of_translation(data_structure: str = "verb_sentences"):
     elif data_structure == "WinoBias":
         n_of_unclassified_sentences = 0
         n_of_construction_sentences = 0
+        translations_data.sort(key=lambda x: x[3])
         for translation_data in translations_data:
             occupation = translation_data[3].split(" ")[1]
             if occupation == "construction":
@@ -164,16 +164,16 @@ def evaluate_gender_of_translation(data_structure: str = "verb_sentences"):
                 special_found: bool = False
                 # find female translations
                 for female_occ_trans in occupation_trans[occupation]["female"]:
-                    female_occ_trans_plus_spaces = female_occ_trans + " "
-                    female_occ_trans_plus_comma = female_occ_trans + ","
+                    female_occ_trans_plus_spaces = " " + female_occ_trans + " "
+                    female_occ_trans_plus_comma = " " + female_occ_trans + ","
                     if female_occ_trans_plus_spaces in translation or female_occ_trans_plus_comma in translation:
                         female_found = True
                 if female_found:
                     translation_data.append("female")
                 # find male translations
                 for male_occ_trans in occupation_trans[occupation]["male"]:
-                    male_occ_trans_plus_spaces = male_occ_trans + " "
-                    male_occ_trans_plus_s = male_occ_trans + "s "
+                    male_occ_trans_plus_spaces = " " + male_occ_trans + " "
+                    male_occ_trans_plus_s = " " + male_occ_trans + "s "
 
                     if male_occ_trans_plus_spaces in translation or male_occ_trans_plus_s in translation:
                         male_found = True
@@ -181,17 +181,20 @@ def evaluate_gender_of_translation(data_structure: str = "verb_sentences"):
                     translation_data.append("male")
                 # find neutral translations
                 for neutral_occ_trans in occupation_trans[occupation]["neutral"]:
-                    neutral_occ_trans_plus_spaces = neutral_occ_trans + " "
-                    neutral_occ_trans_plus_s = neutral_occ_trans + "s "
+                    neutral_occ_trans_plus_spaces = " " + neutral_occ_trans + " "
+                    neutral_occ_trans_plus_s = " " + neutral_occ_trans + "s "
                     if neutral_occ_trans_plus_spaces in translation or neutral_occ_trans_plus_s in translation:
                         neutral_found = True
                 if neutral_found:
                     translation_data.append("neutral")
                 # find wrong translations
                 for wrong_occ_trans in occupation_trans[occupation]["wrong"]:
-                    wrong_occ_trans_plus_spaces = wrong_occ_trans + " "
-                    wrong_occ_trans_plus_s = wrong_occ_trans + "s "
-                    if wrong_occ_trans_plus_spaces in translation or wrong_occ_trans_plus_s in translation:
+                    wrong_occ_trans_plus_spaces = " " + wrong_occ_trans + " "
+                    wrong_occ_trans_plus_in = " " + wrong_occ_trans + "in "
+                    wrong_occ_trans_plus_s = " " + wrong_occ_trans + "s "
+                    if wrong_occ_trans_plus_spaces in translation or wrong_occ_trans_plus_s in translation or \
+                            wrong_occ_trans_plus_in in translation or \
+                            " Debonair" in translation or " Suave" in translation:
                         wrong_found = True
                 if wrong_found:
                     translation_data.append("wrong")
