@@ -1,6 +1,6 @@
 import string
 
-from reader_saver import load_nested_list_to_dict, load_nested_list_to_list, write_nested_list_to_file
+from reader_saver import load_nested_list_to_dict, load_nested_list_to_list, write_nested_list_to_file, get_file_saver_instance
 
 
 def special_rules_dativ_akkusativ(translation: str) -> str:
@@ -227,3 +227,84 @@ def evaluate_gender_of_translation(data_structure: str = "verb_sentences"):
     print("Number of construction worker sentences:", n_of_construction_sentences)
     write_nested_list_to_file(translations_data)
     return
+
+
+def manual_evaluation():
+    # choose file to load
+    translations = load_nested_list_to_list()
+    # count lines with wrong length:
+    n_of_lines_to_categorize: int = 0
+    for translation_data in translations:
+        if len(translation_data) != 10:
+            n_of_lines_to_categorize += 1
+    # choose file to save
+    file_saver = get_file_saver_instance(".txt")
+    continue_manual_classification: bool = True
+    for translation_data in translations:
+        if continue_manual_classification:
+            if len(translation_data) == 9:
+                for elem in translation_data:
+                    file_saver.write(elem)
+                    file_saver.write("\t")
+                file_saver.write("\n")
+            else:
+                try:
+                    print("Occupation:", translation_data[3])
+                    print(translation_data[2])
+                    print(translation_data[8])
+                    print("male = 1; female = 2, neutral = 3, wrong = 4; finish & save = 5")
+                    append_value: str = "WRONG \t WRONG"
+                    while True:
+                        # TODO: add check step to each "if" to verify if input was intended
+                        try:
+                            embedding_type_int = int(input("Enter the corresponding number:"))
+                            if embedding_type_int < 1 or embedding_type_int > 5:
+                                raise ValueError
+                            elif embedding_type_int == 1:
+                                # load GloVe
+                                print("You chose FEMALE")
+                                append_value = "female"
+                                break
+                            elif embedding_type_int == 2:
+                                # load GloVe
+                                print("You chose MALE")
+                                append_value = "male"
+                                break
+                            elif embedding_type_int == 3:
+                                # load GloVe
+                                print("You chose NEUTRAL")
+                                append_value = "neutral"
+                                break
+                            elif embedding_type_int == 4:
+                                # load GloVe
+                                print("You chose WRONG")
+                                append_value = "wrong"
+                                break
+                            elif embedding_type_int == 5:
+                                # TODO: add check step
+                                continue_manual_classification = False
+                        except ValueError:
+                            print("Please enter an int between 1 - 5")
+                except TypeError:
+                    print(TypeError)
+                    print(translation_data)
+                    for elem in translation_data:
+                        file_saver.write(elem)
+                        file_saver.write("\t")
+                    file_saver.write("\n")
+                # TODO: add saving to file
+
+        file_saver.close()
+
+    # seperate line
+    # check len of line
+    # if len of line wrong:
+        # print counter: current_n_of_line / total_n_of_lines
+        # print occ
+        # print sentence
+        # print translation
+        # let choose class of translation:
+            # wrong, neutral, female, male
+        # pop elements behind position X
+        # append manual chosen classification
+        # write line to file during runtime
