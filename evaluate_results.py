@@ -146,13 +146,9 @@ def evaluate_gender_of_translation(data_structure: str = "verb_sentences"):
                 print("Data: ", translation_data)
     elif data_structure == "WinoBias":
         n_of_unclassified_sentences = 0
-        n_of_construction_sentences = 0
         translations_data.sort(key=lambda x: x[3])
         for translation_data in translations_data:
             occupation = translation_data[3].split(" ")[1]
-            if occupation == "construction":
-                n_of_construction_sentences += 1
-                continue
             translation = translation_data[8].translate(str.maketrans('', '', string.punctuation))
             translation = translation + " "
 
@@ -224,7 +220,6 @@ def evaluate_gender_of_translation(data_structure: str = "verb_sentences"):
             # TODO: add printout of occupation lists
             print("Number of lines with length above 9: ", n_of_len_above_six)
             print("Length of translation_data:", len(elem))
-    print("Number of construction worker sentences:", n_of_construction_sentences)
     write_nested_list_to_file(translations_data)
     return
 
@@ -240,61 +235,104 @@ def manual_evaluation():
     # choose file to save
     file_saver = get_file_saver_instance(".txt")
     continue_manual_classification: bool = True
+    n_of_categorized_lines: int = 1
     for translation_data in translations:
         if continue_manual_classification:
-            if len(translation_data) == 9:
-                for elem in translation_data:
-                    file_saver.write(elem)
-                    file_saver.write("\t")
-                file_saver.write("\n")
+            if len(translation_data) == 10:
+                append_value: str = None
             else:
+                if len(translation_data) > 10:
+                    del translation_data[9:]
                 try:
-                    print("Occupation:", translation_data[3])
-                    print(translation_data[2])
-                    print(translation_data[8])
-                    print("male = 1; female = 2, neutral = 3, wrong = 4; finish & save = 5")
-                    append_value: str = "WRONG \t WRONG"
-                    while True:
-                        # TODO: add check step to each "if" to verify if input was intended
+                    append_value: str = None
+                    try_to_classify: bool = True
+                    while try_to_classify:
+                        print("Categorization", str(n_of_categorized_lines) + "/" + str(n_of_lines_to_categorize))
+                        occupation = translation_data[3].split(" ")[1]
+                        print("Occupation:", occupation.upper())
+                        print(translation_data[2].replace(occupation, occupation.upper()))
+                        print(translation_data[8])
+                        print("female = 1; male = 2, neutral = 3, wrong = 4; finish & save = 5")
                         try:
-                            embedding_type_int = int(input("Enter the corresponding number:"))
-                            if embedding_type_int < 1 or embedding_type_int > 5:
+                            translation_category: int = int(input("Enter the corresponding number:"))
+                            if translation_category < 1 or translation_category > 5:
                                 raise ValueError
-                            elif embedding_type_int == 1:
+                            elif translation_category == 1:
                                 # load GloVe
                                 print("You chose FEMALE")
-                                append_value = "female"
-                                break
-                            elif embedding_type_int == 2:
+                                try:
+                                    correct_input: str = str(input("Enter 'y' if input is correct:"))
+                                    if correct_input != "y":
+                                        raise ValueError
+                                    append_value = "female"
+                                    try_to_classify = False
+                                except ValueError:
+                                    print("type 'y' to confirm correct int input: Input not confirmed TRY AGAIN")
+                            elif translation_category == 2:
                                 # load GloVe
                                 print("You chose MALE")
-                                append_value = "male"
-                                break
-                            elif embedding_type_int == 3:
+                                try:
+                                    correct_input: str = str(input("Enter 'y' if input is correct:"))
+                                    if correct_input != "y":
+                                        raise ValueError
+                                    append_value = "male"
+                                    try_to_classify = False
+                                except ValueError:
+                                    print("type 'y' to confirm correct int input: Input not confirmed TRY AGAIN")
+                            elif translation_category == 3:
                                 # load GloVe
                                 print("You chose NEUTRAL")
-                                append_value = "neutral"
-                                break
-                            elif embedding_type_int == 4:
+                                try:
+                                    correct_input: str = str(input("Enter 'y' if input is correct:"))
+                                    if correct_input != "y":
+                                        raise ValueError
+                                    append_value = "neutral"
+                                    try_to_classify = False
+                                except ValueError:
+                                    print("type 'y' to confirm correct int input: Input not confirmed TRY AGAIN")
+                            elif translation_category == 4:
                                 # load GloVe
                                 print("You chose WRONG")
-                                append_value = "wrong"
-                                break
-                            elif embedding_type_int == 5:
-                                # TODO: add check step
-                                continue_manual_classification = False
+                                try:
+                                    correct_input: str = str(input("Enter 'y' if input is correct:"))
+                                    if correct_input != "y":
+                                        raise ValueError
+                                    append_value = "wrong"
+                                    try_to_classify = False
+                                except ValueError:
+                                    print("type 'y' to confirm correct int input: Input not confirmed TRY AGAIN")
+                            elif translation_category == 5:
+                                print("DO YOU REALLY WANT TO FINISH CLASSIFICATION?")
+                                try:
+                                    correct_input: str = str(input("Enter 'y' if input is correct:"))
+                                    if correct_input != "y":
+                                        raise ValueError
+                                    append_value = None
+                                    try_to_classify = False
+                                    continue_manual_classification = False
+                                except ValueError:
+                                    print("type 'y' to confirm correct int input: Input not confirmed TRY AGAIN")
                         except ValueError:
                             print("Please enter an int between 1 - 5")
+                        if append_value is not None:
+                            n_of_categorized_lines += 1
                 except TypeError:
                     print(TypeError)
                     print(translation_data)
-                    for elem in translation_data:
-                        file_saver.write(elem)
+                    file_saver.write(translation_data[0])
+                    for value in translation_data[1:]:
                         file_saver.write("\t")
+                        file_saver.write(str(value))
                     file_saver.write("\n")
-                # TODO: add saving to file
-
-        file_saver.close()
+        if append_value is not None:
+            translation_data.append(append_value)
+        file_saver.write(translation_data[0])
+        for value in translation_data[1:]:
+            file_saver.write("\t")
+            file_saver.write(str(value))
+        file_saver.write("\n")
+    file_saver.close()
+    print("FINISHED & SAVED FILE")
 
     # seperate line
     # check len of line
