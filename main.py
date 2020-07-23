@@ -19,7 +19,7 @@ if __name__ == "__main__":
     # TODO: fix verb_sentences classification
     # ['VM20OccN16', 'The investigator appoints a date for the meeting.', 'appoint', 'investigator', 'Der Untersuchungsbeauftragte setzt einen Termin für das Treffen fest.']
     # ['VM13OccF12', 'The attendant regards a colleague with favour.', 'regard', 'attendant', 'Der Anwesende betrachtet einen Kollegen mit Wohlwollen.']
-    evaluate_gender_of_translation(data_structure="verb_sentences")
+    evaluate_gender_of_translation(data_structure="WinoBias")
     # manual_evaluation()
 
 # TODO: create latex lists/tables for appendix

@@ -3,9 +3,7 @@ import string
 from reader_saver import load_nested_list_to_dict, load_nested_list_to_list, write_nested_list_to_file, get_file_saver_instance
 
 
-def special_rules_dativ_akkusativ(translation: str) -> str:
-    case_dependent_occupations: list = ["Angestellten", "Büroangestellten", "Bediensteten", "Vorgesetzten",
-                                        "Anwesenden", "Vorstandsvorsitzenden", "Beratenden"]
+def special_rules_dativ_akkusativ(translation: str, case_dependent_occupations: list) -> str:
     for case_dependent_occupation in case_dependent_occupations:
         if " " + case_dependent_occupation in translation:
             words: list = translation.split(" ")
@@ -38,11 +36,9 @@ def special_rules_dativ_akkusativ(translation: str) -> str:
 
 
 # TODO: check "Vorgesetzte"
-def special_rules_nominativ(translation: str) -> str:
+def special_rules_nominativ(translation: str, case_dependent_occupations: list) -> str:
     special_found_male = False
     special_found_female = False
-    case_dependent_occupations: list = ["Angestellte", "Bedienstete", "Vorgesetzte", "Anwesende",
-                                        "Vorstandsvorsitzende"]
     for case_dependent_occupation in case_dependent_occupations:
         if " " + case_dependent_occupation + " " in translation:
             words: list = translation.split(" ")
@@ -120,13 +116,18 @@ def evaluate_gender_of_translation(data_structure: str = "verb_sentences"):
                 # find wrong translations
                 for wrong_occ_trans in occupation_trans[occupation]["wrong"]:
                     wrong_occ_trans_plus_spaces = wrong_occ_trans + " "
-                    if wrong_occ_trans_plus_spaces in translation:
+                    wrong_occ_trans_plus_in = wrong_occ_trans + "in "
+                    if wrong_occ_trans_plus_spaces in translation or wrong_occ_trans_plus_in in translation:
                         wrong_found = True
                 if wrong_found:
                     translation_data.append("wrong")
-                if special_rules_dativ_akkusativ(translation) is not False:
-                    special_found = True
-                    translation_data.append(special_rules_dativ_akkusativ(translation))
+                if int(female_found) + int(male_found) + int(neutral_found) + int(wrong_found) < 1:
+                    if special_rules_dativ_akkusativ(translation) is not False:
+                        special_found = True
+                        translation_data.append(special_rules_dativ_akkusativ(translation))
+                    if special_rules_nominativ(translation) is not False:
+                        special_found = True
+                        translation_data.append(special_rules_nominativ(translation))
 
                 if not female_found and not male_found and not neutral_found and not wrong_found and not special_found:
                     print("NO OCCUPATION TRANSLATION FOUND:")
@@ -161,8 +162,7 @@ def evaluate_gender_of_translation(data_structure: str = "verb_sentences"):
                 # find female translations
                 for female_occ_trans in occupation_trans[occupation]["female"]:
                     female_occ_trans_plus_spaces = " " + female_occ_trans + " "
-                    female_occ_trans_plus_comma = " " + female_occ_trans + ","
-                    if female_occ_trans_plus_spaces in translation or female_occ_trans_plus_comma in translation:
+                    if female_occ_trans_plus_spaces in translation:
                         female_found = True
                 if female_found:
                     translation_data.append("female")
@@ -194,13 +194,18 @@ def evaluate_gender_of_translation(data_structure: str = "verb_sentences"):
                         wrong_found = True
                 if wrong_found:
                     translation_data.append("wrong")
-                if int(female_found) + int(male_found) + int(neutral_found) + int(wrong_found) < 1:
-                    if special_rules_dativ_akkusativ(translation) is not False:
-                        special_found = True
-                        translation_data.append(special_rules_dativ_akkusativ(translation))
-                    if special_rules_nominativ(translation) is not False:
-                        special_found = True
-                        translation_data.append(special_rules_nominativ(translation))
+                if get_special_rules_list(occupation, "dativ") is not None:
+                    occupation_trans_case_dependent: list = get_special_rules_list(occupation, "dativ")
+                    if int(female_found) + int(male_found) + int(neutral_found) + int(wrong_found) < 1:
+                        if special_rules_dativ_akkusativ(translation, occupation_trans_case_dependent) is not False:
+                            special_found = True
+                            translation_data.append(special_rules_dativ_akkusativ(translation, occupation_trans_case_dependent))
+                if get_special_rules_list(occupation, "nominativ") is not None:
+                    occupation_trans_case_dependent: list = get_special_rules_list(occupation, "nominativ")
+                    if int(female_found) + int(male_found) + int(neutral_found) + int(wrong_found) < 1:
+                        if special_rules_nominativ(translation, occupation_trans_case_dependent) is not False:
+                            special_found = True
+                            translation_data.append(special_rules_nominativ(translation, occupation_trans_case_dependent))
 
                 if not female_found and not male_found and not neutral_found and not wrong_found and not special_found:
                     n_of_unclassified_sentences += 1
@@ -222,6 +227,40 @@ def evaluate_gender_of_translation(data_structure: str = "verb_sentences"):
             print("Length of translation_data:", len(elem))
     write_nested_list_to_file(translations_data)
     return
+
+
+def get_special_rules_list(occupation: str, case: str) -> list:
+    if occupation == "clerk":
+        if case == "nominativ":
+            return ["Angestellte"]
+        if case == "dativ":
+            return ["Angestellten", "Büroangestellten"]
+    elif occupation == "attendant":
+        if case == "nominativ":
+            return ["Bedienstete", "Anwesende"]
+        if case == "dativ":
+            return ["Bediensteten", "Anwesenden"]
+    elif occupation == "supervisor":
+        if case == "nominativ":
+            return ["Vorgesetzte"]
+        if case == "dativ":
+            return ["Vorgesetzten"]
+    elif occupation == "CEO":
+        if case == "nominativ":
+            return ["Vorstandsvorsitzende"]
+        if case == "dativ":
+            return ["Vorstandsvorsitzenden"]
+    elif occupation == "paralegal":
+        if case == "nominativ":
+            return ["Rechtsanwaltsfachangestellte"]
+        if case == "dativ":
+            return ["Rechtsanwaltsfachangestellten"]
+    elif occupation == "receptionist":
+        if case == "nominativ":
+            return None
+        if case == "dativ":
+            return ["Rezeptionisten"]
+    return None
 
 
 def manual_evaluation():
@@ -250,8 +289,8 @@ def manual_evaluation():
                         print("Categorization", str(n_of_categorized_lines) + "/" + str(n_of_lines_to_categorize))
                         occupation = translation_data[3].split(" ")[1]
                         print("Occupation:", occupation.upper())
-                        print(translation_data[2].replace(occupation, occupation.upper()))
-                        print(translation_data[8])
+                        print(translation_data[2].replace(occupation, occupation.upper()), "\n")
+                        print(translation_data[8], "\n")
                         print("female = 1; male = 2, neutral = 3, wrong = 4; finish & save = 5")
                         try:
                             translation_category: int = int(input("Enter the corresponding number:"))
@@ -259,7 +298,7 @@ def manual_evaluation():
                                 raise ValueError
                             elif translation_category == 1:
                                 # load GloVe
-                                print("You chose FEMALE")
+                                print(5 * "FEMALE ")
                                 try:
                                     correct_input: str = str(input("Enter 'y' if input is correct:"))
                                     if correct_input != "y":
@@ -270,7 +309,7 @@ def manual_evaluation():
                                     print("type 'y' to confirm correct int input: Input not confirmed TRY AGAIN")
                             elif translation_category == 2:
                                 # load GloVe
-                                print("You chose MALE")
+                                print(5 * "MALE ")
                                 try:
                                     correct_input: str = str(input("Enter 'y' if input is correct:"))
                                     if correct_input != "y":
@@ -281,7 +320,7 @@ def manual_evaluation():
                                     print("type 'y' to confirm correct int input: Input not confirmed TRY AGAIN")
                             elif translation_category == 3:
                                 # load GloVe
-                                print("You chose NEUTRAL")
+                                print(5 * "NEUTRAL ")
                                 try:
                                     correct_input: str = str(input("Enter 'y' if input is correct:"))
                                     if correct_input != "y":
@@ -292,7 +331,7 @@ def manual_evaluation():
                                     print("type 'y' to confirm correct int input: Input not confirmed TRY AGAIN")
                             elif translation_category == 4:
                                 # load GloVe
-                                print("You chose WRONG")
+                                print(5 * "WRONG ")
                                 try:
                                     correct_input: str = str(input("Enter 'y' if input is correct:"))
                                     if correct_input != "y":
