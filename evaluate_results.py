@@ -1,4 +1,5 @@
 import string
+import random
 
 from reader_saver import load_nested_list_to_dict, load_nested_list_to_list, write_nested_list_to_file, get_file_saver_instance
 
@@ -319,7 +320,6 @@ def manual_evaluation():
                                 except ValueError:
                                     print("type 'y' to confirm correct int input: Input not confirmed TRY AGAIN")
                             elif translation_category == 3:
-                                # load GloVe
                                 print(5 * "NEUTRAL ")
                                 try:
                                     correct_input: str = str(input("Enter 'y' if input is correct:"))
@@ -330,7 +330,6 @@ def manual_evaluation():
                                 except ValueError:
                                     print("type 'y' to confirm correct int input: Input not confirmed TRY AGAIN")
                             elif translation_category == 4:
-                                # load GloVe
                                 print(5 * "WRONG ")
                                 try:
                                     correct_input: str = str(input("Enter 'y' if input is correct:"))
@@ -372,6 +371,98 @@ def manual_evaluation():
         file_saver.write("\n")
     file_saver.close()
     print("FINISHED & SAVED FILE")
+
+
+# TODO: FIX THAT LOOP STARTS NOT OVER
+def control_sample():
+    # choose file to load
+    translations = load_nested_list_to_list()
+    n_of_translations = len(translations)
+    one_percent_val: int = int(n_of_translations / 100)
+    # create list of random indexes
+    random_indexes = random.sample(range(n_of_translations), one_percent_val)
+    random_translations = []
+    for random_index in random_indexes:
+        random_translations.append(translations[random_index])
+    random_translations.sort(key=lambda x: x[3].split(" ")[1])
+    # count lines with wrong length:
+    n_of_lines_to_categorize: int = one_percent_val
+    # choose file to save
+    file_saver = get_file_saver_instance(".txt")
+    n_of_categorized_lines: int = 1
+    continue_manual_classification = True
+    while continue_manual_classification:
+        for random_translation in random_translations:
+            if not continue_manual_classification:
+                break
+            append_value = None
+            try:
+                try_to_classify: bool = True
+                while try_to_classify:
+                    print("Categorization", str(n_of_categorized_lines) + "/" + str(n_of_lines_to_categorize))
+                    occupation = random_translation[3].split(" ")[1]
+                    print("Occupation:", occupation.upper())
+                    print(random_translation[2].replace(occupation, occupation.upper()), "\n")
+                    print(random_translation[8], "\n")
+                    print("Classification:", random_translation[9].upper(), "\n")
+                    print("correct = 1; incorrect = 2; finish & save = 3")
+                    try:
+                        translation_category: int = int(input("Enter the corresponding number:"))
+                        if translation_category < 1 or translation_category > 3:
+                            raise ValueError
+                        elif translation_category == 1:
+                            print(5 * "CORRECT ")
+                            try:
+                                correct_input: str = str(input("Enter 'y' if input is correct:"))
+                                if correct_input != "y":
+                                    raise ValueError
+                                append_value = "CORRECT"
+                                try_to_classify = False
+                            except ValueError:
+                                print("type 'y' to confirm correct int input: Input not confirmed TRY AGAIN")
+                        elif translation_category == 2:
+                            print(5 * "INCORRECT ")
+                            try:
+                                correct_input: str = str(input("Enter 'y' if input is correct:"))
+                                if correct_input != "y":
+                                    raise ValueError
+                                append_value = "INCORRECT"
+                                try_to_classify = False
+                            except ValueError:
+                                print("type 'y' to confirm correct int input: Input not confirmed TRY AGAIN")
+                        elif translation_category == 3:
+                            print("DO YOU REALLY WANT TO FINISH CLASSIFICATION?")
+                            try:
+                                correct_input: str = str(input("Enter 'y' if input is correct:"))
+                                if correct_input != "y":
+                                    raise ValueError
+                                append_value = None
+                                try_to_classify = False
+                                continue_manual_classification = False
+                            except ValueError:
+                                print("type 'y' to confirm correct int input: Input not confirmed TRY AGAIN")
+                    except ValueError:
+                        print("Please enter an int between 1 - 3")
+                    if append_value is not None:
+                        n_of_categorized_lines += 1
+            except TypeError:
+                print(TypeError)
+                print(random_translation)
+            file_saver.write(random_translation[0])
+            for value in random_translation[1:]:
+                file_saver.write("\t")
+                file_saver.write(str(value))
+            file_saver.write("\n")
+            if append_value is not None:
+                random_translation.append(append_value)
+            file_saver.write(random_translation[0])
+            for value in random_translation[1:]:
+                file_saver.write("\t")
+                file_saver.write(str(value))
+            file_saver.write("\n")
+    file_saver.close()
+
+
 
     # seperate line
     # check len of line
