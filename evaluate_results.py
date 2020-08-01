@@ -392,9 +392,11 @@ def control_sample():
     n_of_categorized_lines: int = 1
     continue_manual_classification = True
     while continue_manual_classification:
-        for random_translation in random_translations:
+        for i, random_translation in enumerate(random_translations):
             if not continue_manual_classification:
                 break
+            if i == len(random_translations) - 1:
+                continue_manual_classification = False
             append_value = None
             try:
                 try_to_classify: bool = True
@@ -448,11 +450,6 @@ def control_sample():
             except TypeError:
                 print(TypeError)
                 print(random_translation)
-            file_saver.write(random_translation[0])
-            for value in random_translation[1:]:
-                file_saver.write("\t")
-                file_saver.write(str(value))
-            file_saver.write("\n")
             if append_value is not None:
                 random_translation.append(append_value)
             file_saver.write(random_translation[0])
@@ -461,6 +458,7 @@ def control_sample():
                 file_saver.write(str(value))
             file_saver.write("\n")
     file_saver.close()
+    print("FINISHED MANUAL CLASSIFICATION")
 
 
 
