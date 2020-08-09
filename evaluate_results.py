@@ -3,29 +3,33 @@ import random
 
 from reader_saver import load_nested_list_to_dict, load_nested_list_to_list, write_nested_list_to_file, get_file_saver_instance
 
+from get_ressources import get_ceo_dat_akk_sentences
+
 
 def special_rules_dativ_akkusativ(translation: str, case_dependent_occupations: list) -> str:
+    translation = translation.translate(str.maketrans('', '', string.punctuation))
+    male_articles = ["den", "dem", "des", "beim", "vom"]
+    female_articles = ["der", "die"]
     for case_dependent_occupation in case_dependent_occupations:
-        if " " + case_dependent_occupation in translation:
-            words: list = translation.split(" ")
-            for index, word in enumerate(words):
-                words[index] = word.strip(",")
+        if " " + case_dependent_occupation.lower() + " " in translation.lower():
+            words: list = translation.lower().split(" ")
             try:
-                index_of_article: int = words.index(case_dependent_occupation) - 2
+                index_of_article: int = words.index(case_dependent_occupation.lower()) - 2
             except ValueError:
                 print(translation)
                 continue
             try:
-                article: str = words[index_of_article].lower()
+                if index_of_article >= 0:
+                    article: str = words[index_of_article].lower()
+                else:
+                    article: str = "article index -1"
                 possible_article: str = words[index_of_article + 1].lower()
             except IndexError:
                 print(10 * "Special rule index is out of range\n")
                 continue
-            if article == "den" or article == "dem" or article == "des" or article == "beim" or article == "vom" or\
-                    possible_article == "den" or possible_article == "dem" or possible_article == "des" or \
-                    possible_article == "beim" or possible_article == "vom":
+            if article in male_articles or possible_article in male_articles:
                 return "male"
-            elif article == "der" or possible_article == "der":
+            elif article in female_articles or possible_article in female_articles:
                 return "female"
             else:
                 print(translation)
@@ -36,22 +40,23 @@ def special_rules_dativ_akkusativ(translation: str, case_dependent_occupations: 
     return False
 
 
-# TODO: check "Vorgesetzte"
 def special_rules_nominativ(translation: str, case_dependent_occupations: list) -> str:
     special_found_male = False
     special_found_female = False
+    translation = translation.translate(str.maketrans("", "", string.punctuation))
     for case_dependent_occupation in case_dependent_occupations:
-        if " " + case_dependent_occupation + " " in translation:
-            words: list = translation.split(" ")
-            for index, word in enumerate(words):
-                words[index] = word.strip(",")
+        if " " + case_dependent_occupation.lower() + " " in translation.lower():
+            words: list = translation.lower().split(" ")
             try:
-                index_of_article: int = words.index(case_dependent_occupation) - 2
+                index_of_article: int = words.index(case_dependent_occupation.lower()) - 2
             except ValueError:
                 print(translation)
                 continue
             try:
-                article: str = words[index_of_article].lower()
+                if index_of_article >= 0:
+                    article: str = words[index_of_article].lower()
+                else:
+                    article: str = "article index -1"
                 possible_article: str = words[index_of_article + 1].lower()
             except IndexError:
                 print(10 * "Special rule index is out of range\n")
@@ -230,6 +235,93 @@ def evaluate_gender_of_translation(data_structure: str = "verb_sentences"):
     return
 
 
+def evaluate_gender_of_translation_after_sample(data_structure: str = "verb_sentences"):
+    print("Choose the list of categorized translations:")
+    categorized_translations = load_nested_list_to_list()
+
+    # print("Choose the list of occupation translations:")
+    # occupation_translations_complete_list = load_nested_list_to_list()
+
+    changed_categorizations: list = []
+
+    for translation_data in categorized_translations:
+        occupation = translation_data[3].split(" ")[1]
+        translation = translation_data[8].translate(str.maketrans("", "", string.punctuation))
+        if occupation == "CEO":
+            new_classification = None
+            if " vorstandsvorsitzende " in translation.lower() and " ceo " not in translation.lower():
+                new_classification = special_rules_nominativ(translation, ["Vorstandsvorsitzende"])
+            elif " vorstandsvorsitzenden " in translation.lower() and " ceo " not in translation.lower():
+                new_classification = special_rules_nominativ(translation, ["Vorstandsvorsitzenden"])
+            elif " geschäftsführerin " in translation.lower() and " ceo " not in translation.lower():
+                new_classification = "female"
+            elif " geschäftsführer " in translation.lower() and " ceo " not in translation.lower():
+                new_classification = "male"
+            elif translation_data[3] == "The CEO":
+                new_classification = special_rules_nominativ(translation, ["CEO"])
+            elif translation_data[3] == "the CEO":
+                dativ_akkusativ_sentences = get_ceo_dat_akk_sentences()
+                dat_akk: bool = False
+                for dat_akk_sentence in dativ_akkusativ_sentences:
+                    # case for dativ
+                    if dat_akk_sentence.lower() in translation_data[2].lower():
+                        dat_akk = True
+                        new_classification = special_rules_dativ_akkusativ(translation, ["CEO"])
+                # case for nominativ
+                if not dat_akk:
+                    new_classification = special_rules_nominativ(translation, ["CEO"])
+            else:
+                print("NO CEO CASE DETECTED")
+                print(translation_data)
+            if new_classification is not None:
+                if new_classification != translation_data[9]:
+                    translation_data[9] = new_classification
+                    changed_categorizations.append(translation_data)
+        elif occupation == "clerk":
+            new_classification = None
+            # print("Occupation is clerk / supervisor")
+            clerk_nominativ: list = ["Angestellte"]
+            clerk_dativ: list = ["Angestellten", "Büroangestellten"]
+
+            for elem in clerk_nominativ:
+                if " " + elem.lower() + " " in translation.lower():
+                    new_classification = special_rules_nominativ(translation, clerk_nominativ)
+                    if new_classification != translation_data[9]:
+                        print(translation_data)
+                        translation_data[9] = new_classification
+                        changed_categorizations.append(translation_data)
+            for elem in clerk_dativ:
+                if " " + elem.lower() + " " in translation.lower():
+                    new_classification = special_rules_dativ_akkusativ(translation, clerk_dativ)
+                    if new_classification != translation_data[9]:
+                        print(translation_data)
+                        translation_data[9] = new_classification
+                        changed_categorizations.append(translation_data)
+        elif occupation == "supervisor":
+            new_classification = None
+
+            supervisor_nominativ: list = ["Vorgesetzte"]
+            supervisor_dativ: list = ["Vorgesetzten"]
+
+            for elem in supervisor_nominativ:
+                if " " + elem.lower() + " " in translation.lower():
+                    new_classification = special_rules_nominativ(translation, supervisor_nominativ)
+                    if new_classification != translation_data[9]:
+                        print(translation_data)
+                        translation_data[9] = new_classification
+                        changed_categorizations.append(translation_data)
+            for elem in supervisor_dativ:
+                if " " + elem.lower() + " " in translation.lower():
+                    new_classification = special_rules_dativ_akkusativ(translation, supervisor_dativ)
+                    if new_classification != translation_data[9]:
+                        translation_data[9] = new_classification
+                        print(translation_data)
+                        changed_categorizations.append(translation_data)
+    print("SAVE ALL CHANGED CATEGORIZATIONS:")
+    write_nested_list_to_file(changed_categorizations)
+    return
+
+
 def get_special_rules_list(occupation: str, case: str) -> list:
     if occupation == "clerk":
         if case == "nominativ":
@@ -261,6 +353,35 @@ def get_special_rules_list(occupation: str, case: str) -> list:
             return None
         if case == "dativ":
             return ["Rezeptionisten"]
+    return None
+
+
+def get_special_rules_list_after_sample(occupation: str, case: str) -> list:
+    if occupation == "clerk":
+        if case == "nominativ":
+            return ["Angestellte"]
+        if case == "dativ":
+            return ["Angestellten", "Büroangestellten"]
+    elif occupation == "supervisor":
+        if case == "nominativ":
+            return ["Vorgesetzte"]
+        if case == "dativ":
+            return ["Vorgesetzten"]
+    elif occupation == "CEO":
+        if case == "nominativ":
+            return ["Vorstandsvorsitzende", "CEO"]
+        if case == "dativ":
+            return ["Vorstandsvorsitzenden", "CEO"]
+    elif occupation == "CTO":
+        if case == "nominativ":
+            return ["CTO"]
+        if case == "dativ":
+            return ["CTO"]
+    elif occupation == "CFO":
+        if case == "nominativ":
+            return ["CFO"]
+        if case == "dativ":
+            return ["CFO"]
     return None
 
 
@@ -373,12 +494,15 @@ def manual_evaluation():
     print("FINISHED & SAVED FILE")
 
 
-# TODO: FIX THAT LOOP STARTS NOT OVER
-def control_sample():
+def control_sample_wb(translations_to_sample_test: list = None):
     # choose file to load
-    translations = load_nested_list_to_list()
+    if translations_to_sample_test is not None:
+        translations = translations_to_sample_test
+    else:
+        print("Choose translations to sample test:")
+        translations = load_nested_list_to_list()
     n_of_translations = len(translations)
-    one_percent_val: int = int(n_of_translations / 100)
+    one_percent_val: int = int(n_of_translations / 20)
     # create list of random indexes
     random_indexes = random.sample(range(n_of_translations), one_percent_val)
     random_translations = []
@@ -407,6 +531,93 @@ def control_sample():
                     print(random_translation[2].replace(occupation, occupation.upper()), "\n")
                     print(random_translation[8], "\n")
                     print("Classification:", random_translation[9].upper(), "\n")
+                    print("correct = 1; incorrect = 2; finish & save = 3")
+                    try:
+                        translation_category: int = int(input("Enter the corresponding number:"))
+                        if translation_category < 1 or translation_category > 3:
+                            raise ValueError
+                        elif translation_category == 1:
+                            print(5 * "CORRECT ")
+                            try:
+                                correct_input: str = str(input("Enter 'y' if input is correct:"))
+                                if correct_input != "y":
+                                    raise ValueError
+                                append_value = "CORRECT"
+                                try_to_classify = False
+                            except ValueError:
+                                print("type 'y' to confirm correct int input: Input not confirmed TRY AGAIN")
+                        elif translation_category == 2:
+                            print(5 * "INCORRECT ")
+                            try:
+                                correct_input: str = str(input("Enter 'y' if input is correct:"))
+                                if correct_input != "y":
+                                    raise ValueError
+                                append_value = "INCORRECT"
+                                try_to_classify = False
+                            except ValueError:
+                                print("type 'y' to confirm correct int input: Input not confirmed TRY AGAIN")
+                        elif translation_category == 3:
+                            print("DO YOU REALLY WANT TO FINISH CLASSIFICATION?")
+                            try:
+                                correct_input: str = str(input("Enter 'y' if input is correct:"))
+                                if correct_input != "y":
+                                    raise ValueError
+                                append_value = None
+                                try_to_classify = False
+                                continue_manual_classification = False
+                            except ValueError:
+                                print("type 'y' to confirm correct int input: Input not confirmed TRY AGAIN")
+                    except ValueError:
+                        print("Please enter an int between 1 - 3")
+                    if append_value is not None:
+                        n_of_categorized_lines += 1
+            except TypeError:
+                print(TypeError)
+                print(random_translation)
+            if append_value is not None:
+                random_translation.append(append_value)
+            file_saver.write(random_translation[0])
+            for value in random_translation[1:]:
+                file_saver.write("\t")
+                file_saver.write(str(value))
+            file_saver.write("\n")
+    file_saver.close()
+    print("FINISHED MANUAL CLASSIFICATION")
+
+
+def control_sample_verbs():
+    # choose file to load
+    translations = load_nested_list_to_list()
+    n_of_translations = len(translations)
+    one_percent_val: int = int(n_of_translations / 40)
+    # create list of random indexes
+    random_indexes = random.sample(range(n_of_translations), one_percent_val)
+    random_translations = []
+    for random_index in random_indexes:
+        random_translations.append(translations[random_index])
+    random_translations.sort(key=lambda x: x[3])
+    # count lines with wrong length:
+    n_of_lines_to_categorize: int = one_percent_val
+    # choose file to save
+    file_saver = get_file_saver_instance(".txt")
+    n_of_categorized_lines: int = 1
+    continue_manual_classification = True
+    while continue_manual_classification:
+        for i, random_translation in enumerate(random_translations):
+            if not continue_manual_classification:
+                break
+            if i == len(random_translations) - 1:
+                continue_manual_classification = False
+            append_value = None
+            try:
+                try_to_classify: bool = True
+                while try_to_classify:
+                    print("Categorization", str(n_of_categorized_lines) + "/" + str(n_of_lines_to_categorize))
+                    occupation = random_translation[3]
+                    print("Occupation:", occupation.upper())
+                    print(random_translation[1].replace(occupation, occupation.upper()), "\n")
+                    print(random_translation[4], "\n")
+                    print("Classification:", random_translation[5].upper(), "\n")
                     print("correct = 1; incorrect = 2; finish & save = 3")
                     try:
                         translation_category: int = int(input("Enter the corresponding number:"))

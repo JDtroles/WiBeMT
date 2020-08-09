@@ -3,14 +3,17 @@ from reader_saver import load_nested_list_to_list, write_nested_list_to_file
 from math import sqrt
 
 
+# TODO: CATCH ALL DIVISIONS BY ZERO
 def get_statistical_measures(translations):
     # {0}: true_female={1}, false_female={2}, true_male={3}, false_male={4}, neutral={5}, wrong={6}
     statistical_measures = [
-        ["WORD", "ground_truth_female", "ground_truth_male","n_of_true_female", "n_of_false_female", "n_of_true_male",
-         "n_of_false_male", "n_of_female", "n_of_male", "n_of_neutral", "n_of_wrong", "total", "wrong_ratio",
-         "neutral_ratio", "true_female_rate", "true_male_rate", "female_predictive_value", "male_predictive_value",
-         "false_female_rate", "false_male_rate", "female_male_classifications_rate", "total_accuracy", "accuracy",
-         "balanced_accuracy", "f_one_score", "mathews_correlation_coefficient"]]
+        ["WORD", "ground_truth_female", "ground_truth_male", "n_of_true_female", "n_of_false_female", "n_of_true_male",
+         "n_of_false_male", "n_of_female", "n_of_male", "n_of_classifications", "n_of_neutral", "n_of_wrong", "total",
+         "classification_ratio", "neutral_ratio", "wrong_ratio", "true_female_rate", "true_male_rate",
+         "female_predictive_value", "male_predictive_value", "false_female_rate", "false_male_rate",
+         "total_accuracy", "accuracy", "balanced_accuracy", "f_one_score",
+         "mathews_correlation_coefficient"]
+    ]
     for elem in translations:
         try:
             ground_truth_female = elem[7]
@@ -21,46 +24,82 @@ def get_statistical_measures(translations):
             n_of_false_male = elem[4]
             n_of_female = n_of_true_female + n_of_false_male
             n_of_male = n_of_true_male + n_of_false_female
+            n_of_classifications = sum(elem[1:5])
             n_of_neutral = elem[5]
             n_of_wrong = elem[6]
-            total = sum(elem[1:6])
-            wrong_ratio = n_of_wrong / total
-            neutral_ratio = n_of_neutral / total
-            # TrueFemaleRate = TFemale / (TFemale + FMale)
-            true_female_rate = n_of_true_female / n_of_female
-            # TrueMaleRate = TMale / (TMale + FFemale)
-            true_male_rate = n_of_true_male / n_of_male
-            # FemalePredictiveValue = TFemale / (TFemale + FFemale)
-            female_predictive_value = n_of_true_female / (n_of_true_female + n_of_false_female)
-            # MalePredictiveValue = TMale / (TMale + FMale)
-            male_predictive_value = n_of_true_male / (n_of_true_male + n_of_false_male)
-            # FalseFemaleRate = FFemale / (FFemale + TMale)
-            false_female_rate = n_of_false_female / n_of_male
-            # FalseMaleRate = FMale / (FMale + TFemale)
-            false_male_rate = n_of_false_male / n_of_female
-
-            # Rate of Male/Female classifications (TFemale + FFemale + TMale + FMale) / ALL
-            female_male_classifications_rate = sum(elem[1:4]) / sum(elem[1:6])
-
+            total = sum(elem[1:7])
+            classification_ratio = round(n_of_classifications / total, 4)
+            wrong_ratio = round(n_of_wrong / total, 4)
+            neutral_ratio = round(n_of_neutral / total, 4)
             # Total_Accuracy with true female/male divided by all cases
-            total_accuracy = (n_of_true_female + n_of_true_male) / total
-            # Accuracy of Female / Male classifications
-            accuracy = (n_of_true_female + n_of_true_male) / (n_of_female + n_of_male)
-            # Balanced Accuracy: (TFR + TMR) / 2
-            balanced_accuracy = (true_female_rate + true_male_rate) / 2
-            # F1 score
-            f_one_score = (2 * n_of_true_female) / ((2 * n_of_true_female) + n_of_false_female + n_of_false_male)
+            total_accuracy = round((n_of_true_female + n_of_true_male) / total, 4)
+
+            if n_of_female > 0:
+                # FalseMaleRate = FMale / (FMale + TFemale)
+                false_male_rate = round(n_of_false_male / n_of_female, 4)
+                # TrueFemaleRate = TFemale / (TFemale + FMale)
+                true_female_rate = round(n_of_true_female / n_of_female, 4)
+            else:
+                false_male_rate = -99
+                true_female_rate = -99
+
+            if n_of_male > 0:
+                # TrueMaleRate = TMale / (TMale + FFemale)
+                true_male_rate = round(n_of_true_male / n_of_male, 4)
+                # FalseFemaleRate = FFemale / (FFemale + TMale)
+                false_female_rate = round(n_of_false_female / n_of_male, 4)
+            else:
+                true_male_rate = -99
+                false_female_rate = -99
+
+            if n_of_true_female + n_of_false_female > 0:
+                # FemalePredictiveValue = TFemale / (TFemale + FFemale)
+                female_predictive_value = round(n_of_true_female / (n_of_true_female + n_of_false_female), 4)
+            else:
+                female_predictive_value = -99
+
+            if n_of_true_male + n_of_false_male > 0:
+                # MalePredictiveValue = TMale / (TMale + FMale)
+                male_predictive_value = round(n_of_true_male / (n_of_true_male + n_of_false_male), 4)
+            else:
+                male_predictive_value = -99
+
+            if n_of_classifications > 0:
+                # Accuracy of Female / Male classifications
+                accuracy = round((n_of_true_female + n_of_true_male) / n_of_classifications, 4)
+            else:
+                accuracy = -99
+
+            if n_of_female > 0 and n_of_male > 0:
+                # Balanced Accuracy: (TFR + TMR) / 2
+                balanced_accuracy = round(((n_of_true_female / n_of_female) + (n_of_true_male / n_of_male)) / 2, 4)
+            else:
+                balanced_accuracy = -99
+
+            if n_of_true_female > 0 or n_of_false_female > 0 or n_of_false_male > 0:
+                # F1 score
+                f_one_score = round((2 * n_of_true_female) /
+                                    ((2 * n_of_true_female) + n_of_false_female + n_of_false_male), 4)
+            else:
+                f_one_score = -99
+
             # Mathews Correlation Coefficient (MCC)
-            mathews_correlation_coefficient = ((n_of_true_female * n_of_true_male) - (
-                    n_of_false_female * n_of_false_male)) / (sqrt(
-                (n_of_true_female + n_of_false_female) * (n_of_true_female + n_of_false_male) *
-                (n_of_true_male + n_of_false_female) * (n_of_true_male + n_of_false_male)))
+            if (n_of_true_female + n_of_false_female) > 0 and n_of_true_male + n_of_false_male > 0 and (
+                    n_of_true_female + n_of_false_male) > 0 and (n_of_true_male + n_of_false_female) > 0:
+                mathews_correlation_coefficient = round(((n_of_true_female * n_of_true_male) - (
+                        n_of_false_female * n_of_false_male)) / (sqrt(
+                    (n_of_true_female + n_of_false_female) * (n_of_true_female + n_of_false_male) *
+                    (n_of_true_male + n_of_false_female) * (n_of_true_male + n_of_false_male))), 4)
+            else:
+                mathews_correlation_coefficient = -99
 
             statistical_measures.append(
-                [elem[0], ground_truth_female, ground_truth_male, n_of_true_female, n_of_false_female, n_of_true_male, n_of_false_male, n_of_female, n_of_male,
-                 n_of_neutral, n_of_wrong, total, wrong_ratio, neutral_ratio, true_female_rate, true_male_rate,
+                [elem[0], ground_truth_female, ground_truth_male, n_of_true_female, n_of_false_female, n_of_true_male,
+                 n_of_false_male, n_of_female, n_of_male,
+                 n_of_classifications, n_of_neutral, n_of_wrong, total, classification_ratio, neutral_ratio,
+                 wrong_ratio, true_female_rate, true_male_rate,
                  female_predictive_value, male_predictive_value, false_female_rate, false_male_rate,
-                 female_male_classifications_rate, total_accuracy, accuracy, balanced_accuracy, f_one_score,
+                 total_accuracy, accuracy, balanced_accuracy, f_one_score,
                  mathews_correlation_coefficient])
         except ZeroDivisionError:
             print(elem[0], "DIVISION BY ZERO AT SOME POINT")
@@ -68,6 +107,7 @@ def get_statistical_measures(translations):
 
 
 def get_results_winobias_sentences():
+    print("CHOOSE WINOBIAS TRANSLATIONS:")
     winobias_sentences = load_nested_list_to_list()
 
     # get all occupations
@@ -218,6 +258,48 @@ def evaluate_translation_gender_winobias_sentences(unique_keys, winobias_sentenc
                                     ground_truth_female, ground_truth_male])
         output = "{0}: true_female={1}, false_female={2}, true_male={3}, false_male={4}, neutral={5}, wrong={6}"
         print(output.format(key.upper(), true_female, false_female, true_male, false_male, neutral_trans, wrong_trans))
+    return translations_gender
+
+
+def get_wb_overall_stats(winobias_sentences, source: str):
+    index_result: int = 9
+
+    ground_truth_female = 0
+    ground_truth_male = 0
+    true_female = 0
+    false_female = 0
+    true_male = 0
+    false_male = 0
+    neutral_trans = 0
+    wrong_trans = 0
+
+    translations_gender: list = []
+
+    for sentence in winobias_sentences:
+        ground_truth = sentence[0]
+        result = sentence[index_result]
+        if ground_truth == "female":
+            ground_truth_female += 1
+        elif ground_truth == "male":
+            ground_truth_male += 1
+        if result == "neutral":
+            neutral_trans += 1
+        elif result == "wrong":
+            wrong_trans += 1
+        elif result == "female":
+            if ground_truth == "female":
+                true_female += 1
+            elif ground_truth == "male":
+                false_female += 1
+        elif result == "male":
+            if ground_truth == "male":
+                true_male += 1
+            elif ground_truth == "female":
+                false_male += 1
+    translations_gender.append([source, true_female, false_female, true_male, false_male, neutral_trans, wrong_trans,
+                                ground_truth_female, ground_truth_male])
+    output = "{0}: true_female={1}, false_female={2}, true_male={3}, false_male={4}, neutral={5}, wrong={6}"
+    print(output.format(source.upper(), true_female, false_female, true_male, false_male, neutral_trans, wrong_trans))
     return translations_gender
 
 

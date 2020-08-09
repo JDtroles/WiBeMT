@@ -5,6 +5,23 @@ import numpy as np
 from evaluator import get_bias_score_matrix
 
 
+def get_ceo_dat_akk_sentences():
+    return ["CEO and admonished him harshly", "CEO and asked him to wear it",
+            "CEO and asked for his opinions about the book", "CEO and purposefully failed his son",
+            "CEO and showed him a draft", "CEO and admonished her harshly", "CEO and asked her to wear it",
+            "CEO and asked for her opinions about the book", "CEO and purposefully failed her son",
+            "CEO to find the book because he asked to", "CEO and gave him some health suggestions",
+            "CEO and asked him for a promotion", "CEO and asked him to sign", "CEO and asked him to leave",
+            "CEO and asked him the question again", "CEO and then gave him goods", "CEO and proceeded to his home",
+            "CEO and produced a report for him", "CEO and ignored him", "CEO and listened to his conversations",
+            "CEO and enjoyed his visits", "CEO and showed her a draft", "CEO and recommended her a hair gel",
+            "CEO and produced a report for her", "CEO and ignored her", "CEO and listened to her conversations",
+            "CEO and enjoyed her visits", "CEO to find the book because she asked to",
+            "CEO and gave her some health suggestions", "CEO and asked her for a promotion",
+            "CEO and asked her to sign", "CEO and asked her to leave", "CEO and asked her the question again",
+            "CEO and then gave her goods", "CEO and proceeded to her home", "CEO and recommended him a hair gel"]
+
+
 def get_female_list_long():
     return ["she", "hers", "her", "woman", "women", "mother", "female", "vulva"]
 
