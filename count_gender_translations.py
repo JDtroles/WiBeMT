@@ -3,8 +3,7 @@ from reader_saver import load_nested_list_to_list, write_nested_list_to_file
 from math import sqrt
 
 
-# TODO: CATCH ALL DIVISIONS BY ZERO
-def get_statistical_measures(translations):
+def get_statistical_measures_winobias(translations):
     # {0}: true_female={1}, false_female={2}, true_male={3}, false_male={4}, neutral={5}, wrong={6}
     statistical_measures = [
         ["WORD", "ground_truth_female", "ground_truth_male", "n_of_true_female", "n_of_false_female", "n_of_true_male",
@@ -121,8 +120,8 @@ def get_results_winobias_sentences():
     adjective_translations = evaluate_translation_gender_winobias_sentences(unique_adjectives, winobias_sentences,
                                                                             mode="adjectives")
 
-    statistical_measures_occupations = get_statistical_measures(occupation_translations)
-    statistical_measures_adjectives = get_statistical_measures(adjective_translations)
+    statistical_measures_occupations = get_statistical_measures_winobias(occupation_translations)
+    statistical_measures_adjectives = get_statistical_measures_winobias(adjective_translations)
 
     # statistical_measures_occupations.sort(key=lambda x: x[1])
     statistical_measures_occupations.sort(key=lambda x: x[0])
@@ -142,6 +141,7 @@ def get_results_winobias_sentences():
 
 
 def get_results_verb_sentences():
+    print("CHOOSE VERB TRANSLATIONS:")
     verb_sentences = load_nested_list_to_list()
     # get all occupations
     unique_occupations = get_unique_occupations_from_verb_sentences(verb_sentences)
@@ -153,20 +153,24 @@ def get_results_verb_sentences():
                                                                          mode="occupations_verb")
     verb_translations = evaluate_translation_gender_verb_sentences(unique_verbs, verb_sentences, mode="verbs")
 
-    occupation_translations = sort_by_female_male_ratio(occupation_translations)
+    statistical_measures_occupations = get_statistical_measures_verbs(occupation_translations)
+    statistical_measures_verbs = get_statistical_measures_verbs(verb_translations)
 
-    verb_translations = sort_by_female_male_ratio(verb_translations)
+    # statistical_measures_occupations.sort(key=lambda x: x[1])
+    statistical_measures_occupations.sort(key=lambda x: x[0])
+    for elem in statistical_measures_occupations:
+        print(elem)
 
-    occupation_translations.insert(0, ["occupation", "n_of_female_translations", "n_of_male_translations",
-                                       "n_of_neutral_translations", "n_of_wrong_translations", "female_male_ratio"])
-    verb_translations.insert(0, ["verb", "n_of_female_translations", "n_of_male_translations",
-                                 "n_of_neutral_translations", "n_of_wrong_translations", "female_male_ratio"])
+    # statistical_measures_adjectives.sort(key=lambda x: x[1])
+    statistical_measures_verbs.sort(key=lambda x: x[0])
+    for elem in statistical_measures_verbs:
+        print(elem)
 
-    print("Write sorted occupation_translations list to file:")
-    write_nested_list_to_file(occupation_translations)
+    print("Write occupations with statisticmeasures to file")
+    write_nested_list_to_file(statistical_measures_occupations)
 
-    print("Write sorted verb_translations list to file:")
-    write_nested_list_to_file(verb_translations)
+    print("Write adjectives with statisticmeasures to file")
+    write_nested_list_to_file(statistical_measures_verbs)
 
 
 def sort_by_female_male_ratio(translations):
@@ -182,6 +186,58 @@ def sort_by_female_male_ratio(translations):
     return translations
 
 
+def get_statistical_measures_verbs(translations):
+    statistical_measures = [
+        ["WORD", "ground_truth_female", "ground_truth_male", "ground_truth_neutral", "result_female", "result_male",
+         "result_neutral", "result_wrong", "total_result", "total_control", "n_of_classifications", "female_ratio",
+         "female_total_ratio", "male_ratio", "male_total_ratio", "neutral_total_ratio", "wrong_total_ratio"]
+    ]
+
+    # input format:
+    # [0 key, 1 result_female, 2 result_male, 3 result_neutral, 4 result_wrong, 5 ground_truth_female,
+    #   6 ground_truth_male, 7 ground_truth_neutral]
+
+    for elem in translations:
+        try:
+            ground_truth_female = elem[5]
+            ground_truth_male = elem[6]
+            ground_truth_neutral = elem[7]
+            result_female = elem[1]
+            result_male = elem[2]
+            result_neutral = elem[3]
+            result_wrong = elem[4]
+            total_result = sum(elem[1:5])
+            total_control = sum(elem[5:8])
+            n_of_classifications = sum(elem[1:3])
+
+            if total_result > 0:
+                female_total_ratio = round(result_female / total_result, 4)
+                male_total_ratio = round(result_male / total_result, 4)
+                neutral_total_ratio = round(result_neutral / total_result, 4)
+                wrong_total_ratio = round(result_wrong / total_result, 4)
+            else:
+                female_total_ratio = -99
+                male_total_ratio = -99
+                neutral_total_ratio = -99
+                wrong_total_ratio = -99
+
+            if n_of_classifications > 0:
+                female_ratio = round(result_female / n_of_classifications, 4)
+                male_ratio = round(result_male / n_of_classifications, 4)
+            else:
+                female_ratio = -99
+                male_ratio = -99
+        except ZeroDivisionError:
+            print(elem[0], "DIVISION BY ZERO AT SOME POINT")
+
+        statistical_measures.append(
+            [elem[0], ground_truth_female, ground_truth_male, ground_truth_neutral, result_female, result_male,
+             result_neutral, result_wrong, total_result, total_control, n_of_classifications, female_ratio,
+             female_total_ratio, male_ratio, male_total_ratio, neutral_total_ratio, wrong_total_ratio])
+
+    return statistical_measures
+
+
 def evaluate_translation_gender_verb_sentences(unique_keys, verb_sentences, mode: str = "occupations_verb"):
     if mode == "occupations_verb":
         index_key = 3
@@ -191,23 +247,43 @@ def evaluate_translation_gender_verb_sentences(unique_keys, verb_sentences, mode
         index_result = 5
     translations_gender: list = []
     for key in unique_keys:
-        female_trans = 0
-        male_trans = 0
-        neutral_trans = 0
-        wrong_trans = 0
+        ground_truth_female = 0
+        ground_truth_male = 0
+        ground_truth_neutral = 0
+        result_female = 0
+        result_male = 0
+        result_neutral = 0
+        result_wrong = 0
         for sentence in verb_sentences:
-            if key == sentence[index_key]:
-                if sentence[index_result] == "female":
-                    female_trans += 1
-                elif sentence[index_result] == "male":
-                    male_trans += 1
-                elif sentence[index_result] == "neutral":
-                    neutral_trans += 1
-                elif sentence[index_result] == "wrong":
-                    wrong_trans += 1
-        translations_gender.append([key, female_trans, male_trans, neutral_trans, wrong_trans])
-        output = "{0}: female={1}, male={2}, neutral={3}, wrong={4}"
-        print(output.format(key.upper(), female_trans, male_trans, neutral_trans, wrong_trans))
+            if mode == "occupations_verb":
+                key_sentence = sentence[index_key]
+            elif mode == "verbs":
+                key_sentence = sentence[index_key]
+            if key == key_sentence:
+                ground_truth = sentence[0][1]
+                result = sentence[index_result]
+                if ground_truth == "F":
+                    ground_truth_female += 1
+                elif ground_truth == "M":
+                    ground_truth_male += 1
+                elif ground_truth == "N":
+                    ground_truth_neutral += 1
+                if result == "neutral":
+                    result_neutral += 1
+                elif result == "wrong":
+                    result_wrong += 1
+                elif result == "female":
+                    result_female += 1
+                elif result == "male":
+                    result_male += 1
+
+        translations_gender.append(
+            [key, result_female, result_male, result_neutral, result_wrong, ground_truth_female, ground_truth_male,
+             ground_truth_neutral])
+        output = "{0}: result_female={1}, result_male={2}, result_neutral={3}, result_wrong={4}, " \
+                 "ground_truth_female={5}, ground_truth_male={6}, ground_truth_neutral={7}"
+        print(output.format(key.upper(), result_female, result_male, result_neutral, result_wrong, ground_truth_female,
+                            ground_truth_male, ground_truth_neutral))
     return translations_gender
 
 
@@ -307,7 +383,7 @@ def get_unique_verbs(verb_sentences):
     unique_verbs: dict = {}
     for sentence in verb_sentences:
         verb = sentence[2]
-        verb_gender = sentence[0][2]
+        verb_gender = sentence[0][1]
         if verb not in unique_verbs:
             unique_verbs[verb] = verb_gender
     return unique_verbs

@@ -127,13 +127,18 @@ def evaluate_gender_of_translation(data_structure: str = "verb_sentences"):
                         wrong_found = True
                 if wrong_found:
                     translation_data.append("wrong")
-                if int(female_found) + int(male_found) + int(neutral_found) + int(wrong_found) < 1:
-                    if special_rules_dativ_akkusativ(translation) is not False:
-                        special_found = True
-                        translation_data.append(special_rules_dativ_akkusativ(translation))
-                    if special_rules_nominativ(translation) is not False:
-                        special_found = True
-                        translation_data.append(special_rules_nominativ(translation))
+                if get_special_rules_list(occupation, "dativ") is not None:
+                    occupation_trans_case_dependent: list = get_special_rules_list(occupation, "dativ")
+                    if int(female_found) + int(male_found) + int(neutral_found) + int(wrong_found) < 1:
+                        if special_rules_dativ_akkusativ(translation, occupation_trans_case_dependent) is not False:
+                            special_found = True
+                            translation_data.append(special_rules_dativ_akkusativ(translation, occupation_trans_case_dependent))
+                if get_special_rules_list(occupation, "nominativ") is not None:
+                    occupation_trans_case_dependent: list = get_special_rules_list(occupation, "nominativ")
+                    if int(female_found) + int(male_found) + int(neutral_found) + int(wrong_found) < 1:
+                        if special_rules_nominativ(translation, occupation_trans_case_dependent) is not False:
+                            special_found = True
+                            translation_data.append(special_rules_nominativ(translation, occupation_trans_case_dependent))
 
                 if not female_found and not male_found and not neutral_found and not wrong_found and not special_found:
                     print("NO OCCUPATION TRANSLATION FOUND:")
@@ -589,7 +594,7 @@ def control_sample_verbs():
     # choose file to load
     translations = load_nested_list_to_list()
     n_of_translations = len(translations)
-    one_percent_val: int = int(n_of_translations / 40)
+    one_percent_val: int = int(n_of_translations / 20)
     # create list of random indexes
     random_indexes = random.sample(range(n_of_translations), one_percent_val)
     random_translations = []
