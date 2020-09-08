@@ -73,3 +73,5 @@ ax.legend()
 sns.despine(bottom=True, left=True)
 ax.figure.savefig(Path(save_path + "DistPlotWords.pdf"))
 plt.show()
+
+
