@@ -24,7 +24,8 @@ plt.rc('ytick', labelsize=12)    # fontsize of the tick labels
 plt.rc('legend', fontsize=12)    # legend fontsize
 plt.rc('figure', titlesize=12)
 
-# plt.xlim(-1, 1)
+plt.xlim(-1, 1)
+plt.ylim(0, 100)
 
 
 # load paths from env:
@@ -62,7 +63,8 @@ for i, point in occupations_percentage.iterrows():
 
 plt.show()
 '''
-scatterplot = sns.regplot(data=occupations_percentage, x="sum_all", y="All_Percentages", fit_reg=True, order=1, ci=95, marker="o")
+scatterplot = sns.regplot(data=occupations_percentage, x="sum_all", y="All_Percentages", fit_reg=True, order=1, ci=95,
+                          marker="o", scatter_kws={"alpha": 0.2}, line_kws={"alpha": 0.5})
 # scatterplot = sns.lmplot(data=occupations_percentage, x="sum_all", y="All_Percentages")
 
 #plt.style.use("seaborn")
@@ -72,18 +74,20 @@ scatterplot = sns.regplot(data=occupations_percentage, x="sum_all", y="All_Perce
 #plt.xlabel("Gender Score")
 #plt.ylim((0, 100))
 #scatterplot.set_xlim(-1, 1)
-scatterplot.set_ylim(0, 100)
+# scatterplot.set_ylim(0, 100)
 #scatterplot = sns.regplot(data=occupations_percentage, x="sum_all", y="All_Percentages", fit_reg=True, order=1, ci=95, marker="o")
 
 scatterplot.set(xlabel="Gender score", ylabel="Percentage of Women")
-texts = []
+# texts = []
 for i, point in occupations_percentage.iterrows():
-    word = str(point["Word"])
-    x = point["sum_all"]
-    y = point["All_Percentages"]
-    # plt.plot(x, y, color='royalblue', marker='o')
-    texts.append(plt.text(x, y, word, fontsize='x-small'))
-adjust_text(texts, only_move={'text': 'xy'}, force_text=1, arrowprops=dict(arrowstyle="->", color='lightcoral', alpha=.5, lw=1))
+    if i == 0 or i % 6 == 0 or i == 65:
+        word = str(point["Word"])
+        x = point["sum_all"]
+        y = point["All_Percentages"]
+        # plt.plot(x, y, color='royalblue', marker='o')
+        # texts.append(plt.text(x, y, word, fontsize='small'))
+        scatterplot.text(x, y + 2, word, horizontalalignment='center', size='medium', color='black')
+# adjust_text(texts, only_move={'points': 'x', 'text': 'xy'}, arrowprops=dict(arrowstyle="->", color='lightcoral', alpha=.5, lw=1))
 # adjust_text(texts, autoalign='xy', only_move={'text': 'xy'}, arrowprops=dict(arrowstyle='->', color='red'))
 sns.despine(bottom=True, left=True)
 scatterplot.figure.savefig(Path(save_path + "OccGenderscorePercentage.pdf"))

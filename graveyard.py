@@ -2,7 +2,7 @@ import time
 
 from pandas import np
 
-from Plots_n_Tables import plotter
+from Plots_n_Tables_n_Statistics import plotter
 import reader_saver
 from evaluator import distance, get_bias_score_matrix
 from get_ressources import get_plotting_word_list
