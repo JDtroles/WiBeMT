@@ -39,17 +39,17 @@ pro_anti = ["Pro-Stereotypical", "Anti-Stereotypical", "Pro-Stereotypical", "Ant
 correct = [69, 57, 82, 52, 79, 65, 94, 70]
 
 pro_anti_correct_translations = pd.DataFrame(list(zip(translator, pro_anti, correct)),
-                                             columns=["Translation System", "Pro/Anti", "Correct Gender (\%)"])
+                                             columns=["MT system", "Pro/Anti", "\%TCG"])
 
 # print(occupations[["sum_all"]])
 
-barplot = sns.barplot(x="Translation System", y="Correct Gender (\%)", hue="Pro/Anti", data=pro_anti_correct_translations)
+barplot = sns.barplot(x="MT system", y="\%TCG", hue="Pro/Anti", data=pro_anti_correct_translations)
 
 for p in barplot.patches:
     barplot.annotate(format(p.get_height(), '.0f'),
                      (p.get_x() + p.get_width() / 2., p.get_height()),
                      ha = 'center', va = 'center',
-                     size=15,
+                     size=12,
                      xytext = (0, 5),
                      textcoords = 'offset points')
 

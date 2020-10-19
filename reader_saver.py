@@ -251,6 +251,22 @@ def write_list_to_file(list_to_save):
     print("File saved")
 
 
+def write_list_to_file_latex(list_to_save):
+    """
+    writes a list to a file specified at runtime
+
+    :param list_to_save:
+    :return: None
+    """
+    file_saver = get_file_saver_instance(".txt")
+    if file_saver is None:
+        print("Not Saved")
+        return
+    for item in list_to_save:
+        file_saver.write(str(item))
+        file_saver.write(", ")
+    print("File saved")
+
 def write_nested_list_to_file(list_to_save):
     """
     writes a nested list to a file specified at runtime

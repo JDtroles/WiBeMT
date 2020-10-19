@@ -67,10 +67,10 @@ DeepL_verbs_df = pd.DataFrame(list(zip(verb_class, female_or_male, accuracy)),
 barplot = sns.barplot(y="Gender of Translations (\%)", x='Verbs', hue='female or male', data=DeepL_verbs_df)
 
 for p in barplot.patches:
-    barplot.annotate(format(p.get_height(), '.0f'),
+    barplot.annotate(format(p.get_height(), '.1f'),
                      (p.get_x() + p.get_width() / 2., p.get_height()),
                      ha = 'center', va = 'center',
-                     size=15,
+                     size=12,
                      xytext = (0, 5),
                      textcoords = 'offset points')
 
