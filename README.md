@@ -18,6 +18,7 @@ of the United States of America, 115(16), E3635–E3644. doi:10.1073/pnas.172034
 arXiv: 1711.08412
 
 https://patternbasedwriting.com/elementary_writing_success/list-4800-adjectives/
+
 https://patternbasedwriting.com/elementary_writing_success/giant-verb-list-3250-verbs/
 
 ## Gender-scores are calculated with the word embeddings:
@@ -31,6 +32,7 @@ https://nlp.stanford.edu/pubs/glove.pdf
 
 
 # Project Structure:
+## Data:
 Data is available in the data folder. It contains:
 ### 1 Gender Word Lists:
 100 most feminine / masculine verbs & adjectives
