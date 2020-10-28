@@ -6,6 +6,8 @@ Stanovsky, G., Smith, N. A., & Zettlemoyer, L. (2019). Evaluating Gender Bias in
 Translation. In Proceedings of the 57th Annual Meeting of the Association for Computa-
 tional Linguistics (pp. 1679–1684). doi:10.18653/v1/p19-1164. arXiv: 1906.00591
 
+GitHub Repository: https://github.com/gabrielStanovsky/mt_gender
+
 ## WinoBias:
 Zhao, J., Wang, T., Yatskar, M., Ordonez, V., & Chang, K.-W. (2018). Gender Bias in Coref-
 erence Resolution: Evaluation and Debiasing Methods, 15–20. doi:10 . 18653 / v1 /
